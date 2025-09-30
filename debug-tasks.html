@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Tasks</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Debug Task Assignment</h1>
+    
+    <h2>Test Different Names:</h2>
+    <button onclick="testName('raj')">Test: raj</button>
+    <button onclick="testName('राज')">Test: राज</button>
+    <button onclick="testName('अमित')">Test: अमित</button>
+    <button onclick="showAllTasks()">Show All Tasks</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testName(name) {
+            try {
+                console.log('Testing name:', name);
+                const response = await fetch(`http://localhost:3001/api/tasks/assignee/${encodeURIComponent(name)}`);
+                const data = await response.json();
+                
+                document.getElementById('results').innerHTML += `
+                    <h3>Results for "${name}":</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <hr>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('results').innerHTML += `
+                    <h3>Error for "${name}":</h3>
+                    <p>${error.message}</p>
+                    <hr>
+                `;
+            }
+        }
+        
+        async function showAllTasks() {
+            try {
+                const response = await fetch('http://localhost:3001/api/tasks/all/tasks');
+                const data = await response.json();
+                
+                document.getElementById('results').innerHTML += `
+                    <h3>All Tasks:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <hr>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

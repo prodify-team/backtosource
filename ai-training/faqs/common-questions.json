@@ -1,0 +1,48 @@
+{
+  "customer_faqs": [
+    {
+      "question": "Dal Makhani कितने time में ready होती है?",
+      "answer": "हमारी signature Dal Makhani को 4-6 घंटे slow cooking में बनाया जाता है। Order के बाद 15-20 मिनट में serve होती है क्योंकि हम इसे fresh रखते हैं।",
+      "category": "food_timing"
+    },
+    {
+      "question": "क्या आपके पास Jain food है?",
+      "answer": "जी हाँ! हमारे पास Jain customers के लिए special menu है। कोई भी root vegetables (प्याज, लहसुन, आलू) use नहीं करते। Jain Dal, Jain Sabzi, और Jain Roti available है।",
+      "category": "dietary_requirements"
+    },
+    {
+      "question": "Spice level कम कर सकते हैं?",
+      "answer": "बिल्कुल! हम आपके according spice level adjust कर सकते हैं - Mild, Medium, या Hot. बस order करते time बता दें।",
+      "category": "customization"
+    }
+  ],
+  "staff_faqs": [
+    {
+      "question": "अगर customer complaint करे तो क्या करना है?",
+      "answer": "1) पहले सुनें और समझें 2) Sorry कहें 3) तुरंत solution offer करें 4) Manager को inform करें 5) Follow-up करें कि problem solve हुई या नहीं",
+      "category": "customer_service"
+    },
+    {
+      "question": "Kitchen में order delay हो रही है तो customer को क्या बताएं?",
+      "answer": "Honest रहें - 'Sir, आपका order fresh prepare हो रहा है, 10 मिनट और लगेंगे। Meanwhile कुछ complimentary papad serve कर सकते हैं?' हमेशा realistic time बताएं।",
+      "category": "service_management"
+    },
+    {
+      "question": "POS system में problem आ रही है?",
+      "answer": "1) Manager को immediately inform करें 2) Manual order note करें 3) Customer को बताएं कि bill manually prepare करेंगे 4) Technical team को call करें",
+      "category": "technical_issues"
+    }
+  ],
+  "management_faqs": [
+    {
+      "question": "Staff performance कैसे track करें?",
+      "answer": "Daily checklist use करें: 1) Customer feedback scores 2) Order accuracy 3) Upselling success 4) Complaint resolution 5) Team coordination. Weekly review meetings करें।",
+      "category": "performance_management"
+    },
+    {
+      "question": "New location के लिए staff hiring criteria क्या है?",
+      "answer": "1) Previous restaurant experience (preferred) 2) Good communication skills 3) Willingness to learn 4) Professional attitude 5) Local language knowledge 6) Flexibility in shifts",
+      "category": "hiring"
+    }
+  ]
+}

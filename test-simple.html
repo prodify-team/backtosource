@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Test</title>
+</head>
+<body>
+    <h1>Test Chat</h1>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type message">
+    <button onclick="testChat()">Send</button>
+
+    <script>
+        async function testChat() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            console.log('Sending:', message);
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/chat/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        userRole: 'chef',
+                        preferredLanguage: 'hindi'
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    document.getElementById('messages').innerHTML += `<p><strong>You:</strong> ${message}</p>`;
+                    document.getElementById('messages').innerHTML += `<p><strong>AI:</strong> ${data.response}</p>`;
+                } else {
+                    console.error('Response not ok:', response.status);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                document.getElementById('messages').innerHTML += `<p><strong>Error:</strong> ${error.message}</p>`;
+            }
+            
+            input.value = '';
+        }
+        
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testChat();
+            }
+        });
+    </script>
+</body>
+</html>

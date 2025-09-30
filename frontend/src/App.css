@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hindi text styling */
+.hindi-text {
+  font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+  line-height: 1.6;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 10px !important;
+  }
+}
+
+/* PWA styles */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 100px;
+  left: 20px;
+  right: 20px;
+  background: #667eea;
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  z-index: 1000;
+}
+
+/* Loading animation */
+@keyframes typing {
+  0%, 20% { opacity: 0; }
+  50% { opacity: 1; }
+  80%, 100% { opacity: 0; }
+}
+
+.typing-indicator {
+  animation: typing 1.5s infinite;
+}

@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back to Source - AI Assistant & Task Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .language-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .lang-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+            font-weight: 600;
+        }
+        
+        .lang-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .lang-btn:first-child {
+            border-radius: 25px 0 0 25px;
+        }
+        
+        .lang-btn:last-child {
+            border-radius: 0 25px 25px 0;
+        }
+        
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .tab-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+            font-weight: 600;
+            border-radius: 25px 25px 0 0;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .tab-btn.active:hover {
+            background: white;
+        }
+        
+        .login-container, .chat-container, .tasks-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .chat-container, .tasks-container {
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header, .tasks-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+            margin: -30px -30px 20px -30px;
+        }
+        
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.4;
+            white-space: pre-line;
+        }
+        
+        .message.user {
+            align-self: flex-end;
+            background: #667eea;
+            color: white;
+        }
+        
+        .message.ai {
+            align-self: flex-start;
+            background: #f1f3f4;
+            color: #333;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        
+        .message-input:focus {
+            border-color: #667eea;
+        }
+        
+        .send-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .send-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .suggestion {
+            background: #f1f3f4;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        
+        .suggestion:hover {
+            background: #e8eaed;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        
+        .login-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Task Management Styles */
+        .tasks-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+        
+        .task-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .summary-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .summary-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .task-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .task-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .task-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+        
+        .task-priority {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .priority-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .priority-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .priority-low {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .task-description {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .task-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .status-in-progress {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-completed {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .btn-complete {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-progress {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .new-task-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .btn-create-task {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-toggle">
+            <button class="lang-btn active" onclick="setLanguage('hindi')">हिंदी</button>
+            <button class="lang-btn" onclick="setLanguage('english')">English</button>
+        </div>
+        
+        <div id="loginContainer" class="login-container">
+            <h1 id="loginTitle">बैक टू सोर्स में आपका स्वागत है</h1>
+            <input type="text" id="userName" class="form-input" placeholder="अपना नाम लिखें">
+            <select id="userRole" class="form-select">
+                <option value="chef">रसोइया</option>
+                <option value="waiter">वेटर</option>
+                <option value="manager">मैनेजर</option>
+                <option value="owner">मालिक</option>
+                <option value="cleaner">सफाई कर्मचारी</option>
+            </select>
+            <button class="login-btn" onclick="login()">शुरू करें</button>
+        </div>
+        
+        <div id="tabContainer" class="tab-container hidden">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('chat')">💬 <span id="chatTabLabel">Chat</span></button>
+                <button class="tab-btn" onclick="switchTab('tasks')">📋 <span id="tasksTabLabel">Tasks</span></button>
+            </div>
+        </div>
+        
+        <div id="chatContainer" class="chat-container hidden">
+            <div class="chat-header">
+                <h2 id="chatTitle">बैक टू सोर्स सहायक</h2>
+            </div>
+            
+            <div class="suggestions" id="suggestions">
+                <div class="suggestion" onclick="sendSuggestion('दाल मखनी कैसे बनाएं?')">दाल मखनी कैसे बनाएं?</div>
+                <div class="suggestion" onclick="sendSuggestion('मेरे काम दिखाओ')">मेरे काम दिखाओ</div>
+                <div class="suggestion" onclick="sendSuggestion('खाना सुरक्षित कैसे रखें?')">खाना सुरक्षित कैसे रखें?</div>
+                <div class="suggestion" onclick="sendSuggestion('नया काम बनाओ')">नया काम बनाओ</div>
+            </div>
+            
+            <div class="messages" id="messages"></div>
+            
+            <div class="input-container">
+                <input type="text" id="messageInput" class="message-input" placeholder="अपना संदेश यहाँ लिखें...">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+        
+        <div id="tasksContainer" class="tasks-container hidden">
+            <div class="tasks-header">
+                <h2 id="tasksTitle">📋 Task Management</h2>
+            </div>
+            
+            <div class="tasks-content">
+                <div class="task-summary" id="taskSummary">
+                    <!-- Summary cards will be populated here -->
+                </div>
+                
+                <div class="new-task-form" id="newTaskForm">
+                    <h3 id="newTaskTitle">Create New Task</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" id="taskTitleLabel">Task Title</label>
+                            <input type="text" id="taskTitle" class="form-input" placeholder="Enter task title">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" id="assignToLabel">Assign To</label>
+                            <input type="text" id="assignTo" class="form-input" placeholder="Enter person's name">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" id="priorityLabel">Priority</label>
+                            <select id="taskPriority" class="form-select">
+                                <option value="high">High</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" id="roleLabel">Role</label>
+                            <select id="taskRole" class="form-select">
+                                <option value="chef">Chef</option>
+                                <option value="waiter">Waiter</option>
+                                <option value="manager">Manager</option>
+                                <option value="owner">Owner</option>
+                                <option value="cleaner">Cleaner</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" id="descriptionLabel">Description</label>
+                        <textarea id="taskDescription" class="form-input" rows="3" placeholder="Enter task description"></textarea>
+                    </div>
+                    <button class="btn-create-task" onclick="createTask()">Create Task</button>
+                </div>
+                
+                <div class="task-filters">
+                    <button class="filter-btn active" onclick="filterTasks('all')">All</button>
+                    <button class="filter-btn" onclick="filterTasks('pending')">Pending</button>
+                    <button class="filter-btn" onclick="filterTasks('in-progress')">In Progress</button>
+                    <button class="filter-btn" onclick="filterTasks('completed')">Completed</button>
+                </div>
+                
+                <div class="task-list" id="taskList">
+                    <!-- Tasks will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLanguage = 'hindi';
+        let currentUser = null;
+        let currentTab = 'chat';
+        let currentFilter = 'all';
+        
+        const texts = {
+            hindi: {
+                loginTitle: 'बैक टू सोर्स में आपका स्वागत है',
+                namePlaceholder: 'अपना नाम लिखें',
+                roles: {
+                    chef: 'रसोइया',
+                    waiter: 'वेटर',
+                    manager: 'मैनेजर',
+                    owner: 'मालिक',
+                    cleaner: 'सफाई कर्मचारी'
+                },
+                loginButton: 'शुरू करें',
+                chatTitle: 'बैक टू सोर्स सहायक',
+                chatTabLabel: 'चैट',
+                tasksTabLabel: 'काम',
+                placeholder: 'अपना संदेश यहाँ लिखें...',
+                suggestions: ['दाल मखनी कैसे बनाएं?', 'राज को काम assign करो', 'खाना सुरक्षित कैसे रखें?', 'आज के special dishes क्या हैं?']
+            },
+            english: {
+                loginTitle: 'Welcome to Back to Source',
+                namePlaceholder: 'Enter your name',
+                roles: {
+                    chef: 'Chef',
+                    waiter: 'Waiter',
+                    manager: 'Manager',
+                    owner: 'Owner',
+                    cleaner: 'Cleaner'
+                },
+                loginButton: 'Start',
+                chatTitle: 'Back to Source Assistant',
+                chatTabLabel: 'Chat',
+                tasksTabLabel: 'Tasks',
+                placeholder: 'Type your message here...',
+                suggestions: ['How to make dal makhani?', 'Assign task to Raj', 'Food safety tips', 'Customer service help']
+            }
+        };
+        
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateTexts();
+        }
+        
+        function updateTexts() {
+            const t = texts[currentLanguage];
+            document.getElementById('loginTitle').textContent = t.loginTitle;
+            document.getElementById('userName').placeholder = t.namePlaceholder;
+            document.querySelector('.login-btn').textContent = t.loginButton;
+            document.getElementById('chatTitle').textContent = t.chatTitle;
+            document.getElementById('chatTabLabel').textContent = t.chatTabLabel;
+            document.getElementById('tasksTabLabel').textContent = t.tasksTabLabel;
+            document.getElementById('messageInput').placeholder = t.placeholder;
+            
+            // Update role options
+            const roleSelect = document.getElementById('userRole');
+            roleSelect.innerHTML = '';
+            Object.entries(t.roles).forEach(([key, value]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = value;
+                roleSelect.appendChild(option);
+            });
+            
+            // Update suggestions
+            const suggestionsContainer = document.getElementById('suggestions');
+            suggestionsContainer.innerHTML = '';
+            t.suggestions.forEach(suggestion => {
+                const div = document.createElement('div');
+                div.className = 'suggestion';
+                div.textContent = suggestion;
+                div.onclick = () => sendSuggestion(suggestion);
+                suggestionsContainer.appendChild(div);
+            });
+        }
+        
+        function login() {
+            const name = document.getElementById('userName').value.trim();
+            const role = document.getElementById('userRole').value;
+            
+            if (!name) return;
+            
+            currentUser = { name, role };
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('tabContainer').classList.remove('hidden');
+            document.getElementById('chatContainer').classList.remove('hidden');
+            
+            // Welcome message
+            const welcomeMsg = currentLanguage === 'hindi' ? 
+                `नमस्ते ${name}! मैं आपका सहायक हूँ। आप मुझसे खाना बनाने, काम assign करने, या कोई भी सवाल पूछ सकते हैं।` :
+                `Hello ${name}! I'm your assistant. You can ask me about cooking, assign tasks, or any questions.`;
+            
+            addMessage(welcomeMsg, 'ai');
+            
+            // Load tasks for the tasks tab
+            loadTasks();
+        }
+        
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide containers
+            if (tab === 'chat') {
+                document.getElementById('chatContainer').classList.remove('hidden');
+                document.getElementById('tasksContainer').classList.add('hidden');
+            } else {
+                document.getElementById('chatContainer').classList.add('hidden');
+                document.getElementById('tasksContainer').classList.remove('hidden');
+                loadTasks(); // Refresh tasks when switching to tasks tab
+            }
+        }
+        
+        function addMessage(text, type) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Check for task assignment commands
+            if (await handleTaskAssignment(message)) {
+                return;
+            }
+            
+            // Show typing indicator
+            addMessage(currentLanguage === 'hindi' ? 'टाइप कर रहा हूँ...' : 'Typing...', 'ai');
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/chat/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        userRole: currentUser.role,
+                        preferredLanguage: currentLanguage
+                    })
+                });
+                
+                // Remove typing indicator
+                const messages = document.getElementById('messages');
+                messages.removeChild(messages.lastChild);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage(data.response, 'ai');
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (error) {
+                // Remove typing indicator
+                const messages = document.getElementById('messages');
+                if (messages.lastChild) {
+                    messages.removeChild(messages.lastChild);
+                }
+                
+                const errorMsg = currentLanguage === 'hindi' ? 
+                    'माफ करें, server से connection नहीं हो पा रहा। क्या backend चल रहा है?' :
+                    'Sorry, cannot connect to server. Is the backend running?';
+                addMessage(errorMsg, 'ai');
+            }
+        }
+        
+        async function handleTaskAssignment(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Pattern: "assign [task] to [person]" or "राज को [task] assign करो"
+            const assignPatterns = [
+                /assign\s+(.+?)\s+to\s+(\w+)/i,
+                /(\w+)\s+को\s+(.+?)\s+assign\s+करो/i,
+                /(\w+)\s+को\s+(.+?)\s+का\s+काम\s+दो/i
+            ];
+            
+            for (let pattern of assignPatterns) {
+                const match = message.match(pattern);
+                if (match) {
+                    let taskTitle, assignTo;
+                    
+                    if (pattern.source.includes('assign')) {
+                        // English pattern: assign [task] to [person]
+                        taskTitle = match[1].trim();
+                        assignTo = match[2].trim();
+                    } else {
+                        // Hindi pattern: [person] को [task] assign करो
+                        assignTo = match[1].trim();
+                        taskTitle = match[2].trim();
+                    }
+                    
+                    await createTaskViaChat(taskTitle, assignTo);
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        async function createTaskViaChat(title, assignTo) {
+            try {
+                const response = await fetch('http://localhost:3001/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: `Task assigned via chat by ${currentUser.name}`,
+                        assignedTo: assignTo,
+                        assignedBy: currentUser.name,
+                        role: 'general',
+                        priority: 'medium'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const successMsg = currentLanguage === 'hindi' ? 
+                        `✅ काम "${title}" को ${assignTo} को assign कर दिया गया है।` :
+                        `✅ Task "${title}" has been assigned to ${assignTo}.`;
+                    addMessage(successMsg, 'ai');
+                    
+                    // Refresh tasks if on tasks tab
+                    if (currentTab === 'tasks') {
+                        loadTasks();
+                    }
+                } else {
+                    throw new Error('Failed to create task');
+                }
+            } catch (error) {
+                const errorMsg = currentLanguage === 'hindi' ? 
+                    'काम assign नहीं हो सका। कृपया बाद में कोशिश करें।' :
+                    'Could not assign task. Please try again later.';
+                addMessage(errorMsg, 'ai');
+            }
+        }
+        
+        async function loadTasks() {
+            try {
+                const response = await fetch(`http://localhost:3001/api/tasks/${currentUser.role}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayTaskSummary(data.summary);
+                    displayTasks(data.tasks);
+                }
+            } catch (error) {
+                console.error('Failed to load tasks:', error);
+            }
+        }
+        
+        function displayTaskSummary(summary) {
+            const summaryContainer = document.getElementById('taskSummary');
+            summaryContainer.innerHTML = `
+                <div class="summary-card">
+                    <div class="summary-number">${summary.total}</div>
+                    <div class="summary-label">Total Tasks</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number">${summary.pending}</div>
+                    <div class="summary-label">Pending</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number">${summary.inProgress}</div>
+                    <div class="summary-label">In Progress</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number">${summary.completed}</div>
+                    <div class="summary-label">Completed</div>
+                </div>
+            `;
+        }
+        
+        function displayTasks(tasks) {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            
+            const filteredTasks = currentFilter === 'all' ? tasks : tasks.filter(task => task.status === currentFilter);
+            
+            filteredTasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                
+                const createdDate = new Date(task.createdAt).toLocaleString();
+                const completedDate = task.completedAt ? new Date(task.completedAt).toLocaleString() : null;
+                
+                taskItem.innerHTML = `
+                    <div class="task-header">
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-priority priority-${task.priority}">${task.priority.toUpperCase()}</div>
+                    </div>
+                    <div class="task-description">${task.description}</div>
+                    <div class="task-meta">
+                        <span>Assigned to: ${task.assignedTo} | By: ${task.assignedBy}</span>
+                        <span class="task-status status-${task.status}">${task.status.replace('-', ' ').toUpperCase()}</span>
+                    </div>
+                    <div class="task-meta">
+                        <span>Created: ${createdDate}</span>
+                        ${completedDate ? `<span>Completed: ${completedDate}</span>` : ''}
+                    </div>
+                    ${task.status !== 'completed' ? `
+                        <div class="task-actions">
+                            ${task.status === 'pending' ? `<button class="action-btn btn-progress" onclick="updateTaskStatus(${task.id}, 'in-progress')">Start</button>` : ''}
+                            <button class="action-btn btn-complete" onclick="updateTaskStatus(${task.id}, 'completed')">Complete</button>
+                        </div>
+                    ` : ''}
+                `;
+                
+                taskList.appendChild(taskItem);
+            });
+        }
+        
+        async function updateTaskStatus(taskId, status) {
+            try {
+                const response = await fetch(`http://localhost:3001/api/tasks/${taskId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status })
+                });
+                
+                if (response.ok) {
+                    loadTasks(); // Refresh the task list
+                }
+            } catch (error) {
+                console.error('Failed to update task status:', error);
+            }
+        }
+        
+        function filterTasks(filter) {
+            currentFilter = filter;
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Reload tasks with new filter
+            loadTasks();
+        }
+        
+        async function createTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            const assignTo = document.getElementById('assignTo').value.trim();
+            const priority = document.getElementById('taskPriority').value;
+            const role = document.getElementById('taskRole').value;
+            const description = document.getElementById('taskDescription').value.trim();
+            
+            if (!title || !assignTo || !description) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        assignedTo: assignTo,
+                        assignedBy: currentUser.name,
+                        role,
+                        priority
+                    })
+                });
+                
+                if (response.ok) {
+                    // Clear form
+                    document.getElementById('taskTitle').value = '';
+                    document.getElementById('assignTo').value = '';
+                    document.getElementById('taskDescription').value = '';
+                    document.getElementById('taskPriority').value = 'medium';
+                    document.getElementById('taskRole').value = 'chef';
+                    
+                    // Refresh tasks
+                    loadTasks();
+                    
+                    alert('Task created successfully!');
+                } else {
+                    throw new Error('Failed to create task');
+                }
+            } catch (error) {
+                alert('Failed to create task. Please try again.');
+                console.error('Create task error:', error);
+            }
+        }
+        
+        function sendSuggestion(suggestion) {
+            document.getElementById('messageInput').value = suggestion;
+            sendMessage();
+        }
+        
+        // Enter key support
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        document.getElementById('userName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>

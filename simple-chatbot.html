@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back to Source - AI Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .language-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .lang-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+            font-weight: 600;
+        }
+        
+        .lang-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .lang-btn:first-child {
+            border-radius: 25px 0 0 25px;
+        }
+        
+        .lang-btn:last-child {
+            border-radius: 0 25px 25px 0;
+        }
+        
+        .login-container, .chat-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .chat-container {
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+            margin: -30px -30px 20px -30px;
+        }
+        
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.4;
+            white-space: pre-line;
+        }
+        
+        .message.user {
+            align-self: flex-end;
+            background: #667eea;
+            color: white;
+        }
+        
+        .message.ai {
+            align-self: flex-start;
+            background: #f1f3f4;
+            color: #333;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        
+        .message-input:focus {
+            border-color: #667eea;
+        }
+        
+        .send-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .send-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .suggestion {
+            background: #f1f3f4;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        
+        .suggestion:hover {
+            background: #e8eaed;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        
+        .login-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-toggle">
+            <button class="lang-btn active" onclick="setLanguage('hindi')">हिंदी</button>
+            <button class="lang-btn" onclick="setLanguage('english')">English</button>
+        </div>
+        
+        <div id="loginContainer" class="login-container">
+            <h1 id="loginTitle">बैक टू सोर्स में आपका स्वागत है</h1>
+            <p id="subtitle">350+ Team Members | Multiple Locations</p>
+            
+            <div id="phoneLoginForm">
+                <input type="tel" id="phoneNumber" class="form-input" placeholder="अपना फोन नंबर डालें (+91)" maxlength="13">
+                <button class="login-btn" onclick="sendOTP()" id="sendOTPBtn">OTP भेजें</button>
+            </div>
+            
+            <div id="otpVerifyForm" class="hidden">
+                <input type="text" id="otpCode" class="form-input" placeholder="OTP कोड डालें" maxlength="6">
+                <button class="login-btn" onclick="verifyOTP()">Verify करें</button>
+                <p><small>OTP नहीं मिला? <a href="#" onclick="sendOTP()">दोबारा भेजें</a></small></p>
+            </div>
+            
+            <div id="profileSetupForm" class="hidden">
+                <h2>Profile Setup</h2>
+                <input type="text" id="userName" class="form-input" placeholder="अपना नाम लिखें">
+                <select id="userRole" class="form-select">
+                    <option value="">अपनी भूमिका चुनें</option>
+                    <option value="owner">Owner</option>
+                    <option value="regional-manager">Regional Manager</option>
+                    <option value="restaurant-manager">Restaurant Manager</option>
+                    <option value="head-chef">Head Chef</option>
+                    <option value="chef">Chef</option>
+                    <option value="waiter">Waiter</option>
+                    <option value="cashier">Cashier</option>
+                    <option value="cleaner">Cleaner</option>
+                </select>
+                <select id="restaurantLocation" class="form-select">
+                    <option value="">Restaurant Location चुनें</option>
+                    <option value="delhi-cp">Delhi - Connaught Place</option>
+                    <option value="delhi-gk">Delhi - Greater Kailash</option>
+                    <option value="mumbai-bandra">Mumbai - Bandra</option>
+                    <option value="mumbai-andheri">Mumbai - Andheri</option>
+                    <option value="bangalore-koramangala">Bangalore - Koramangala</option>
+                    <option value="bangalore-indiranagar">Bangalore - Indiranagar</option>
+                    <option value="pune-fc">Pune - FC Road</option>
+                    <option value="hyderabad-hitech">Hyderabad - Hi-Tech City</option>
+                </select>
+                <button class="login-btn" onclick="completeRegistration()">Complete Setup</button>
+            </div>
+        </div>
+        
+        <div id="chatContainer" class="chat-container hidden">
+            <div class="chat-header">
+                <h2 id="chatTitle">बैक टू सोर्स सहायक</h2>
+            </div>
+            
+            <div class="suggestions" id="suggestions">
+                <div class="suggestion" onclick="sendSuggestion('दाल मखनी कैसे बनाएं?')">दाल मखनी कैसे बनाएं?</div>
+                <div class="suggestion" onclick="sendSuggestion('आज क्या काम करना है?')">आज क्या काम करना है?</div>
+                <div class="suggestion" onclick="sendSuggestion('खाना सुरक्षित कैसे रखें?')">खाना सुरक्षित कैसे रखें?</div>
+                <div class="suggestion" onclick="sendSuggestion('customer service tips')">customer service tips</div>
+            </div>
+            
+            <div class="messages" id="messages"></div>
+            
+            <div class="input-container">
+                <input type="text" id="messageInput" class="message-input" placeholder="अपना संदेश यहाँ लिखें...">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLanguage = 'hindi';
+        let currentUser = null;
+        let tempPhoneNumber = null;
+        let isNewUser = false;
+        
+        const texts = {
+            hindi: {
+                loginTitle: 'बैक टू सोर्स में आपका स्वागत है',
+                namePlaceholder: 'अपना नाम लिखें',
+                roles: {
+                    chef: 'रसोइया',
+                    waiter: 'वेटर',
+                    manager: 'मैनेजर',
+                    owner: 'मालिक',
+                    cleaner: 'सफाई कर्मचारी'
+                },
+                loginButton: 'शुरू करें',
+                chatTitle: 'बैक टू सोर्स सहायक',
+                placeholder: 'अपना संदेश यहाँ लिखें...',
+                suggestions: ['मेरे काम दिखाओ', 'राज को दाल बनाने का काम दो', 'काम पूरा हुआ', 'देर हो रही है क्योंकि gas नहीं आ रही']
+            },
+            english: {
+                loginTitle: 'Welcome to Back to Source',
+                namePlaceholder: 'Enter your name',
+                roles: {
+                    chef: 'Chef',
+                    waiter: 'Waiter',
+                    manager: 'Manager',
+                    owner: 'Owner',
+                    cleaner: 'Cleaner'
+                },
+                loginButton: 'Start',
+                chatTitle: 'Back to Source Assistant',
+                placeholder: 'Type your message here...',
+                suggestions: ['Show my tasks', 'Assign make tea to Raj', 'Task completed', 'Delayed because gas not working']
+            }
+        };
+        
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateTexts();
+        }
+        
+        function updateTexts() {
+            const t = texts[currentLanguage];
+            document.getElementById('loginTitle').textContent = t.loginTitle;
+            document.getElementById('userName').placeholder = t.namePlaceholder;
+            document.querySelector('.login-btn').textContent = t.loginButton;
+            document.getElementById('chatTitle').textContent = t.chatTitle;
+            document.getElementById('messageInput').placeholder = t.placeholder;
+            
+            // Update role options
+            const roleSelect = document.getElementById('userRole');
+            roleSelect.innerHTML = '';
+            Object.entries(t.roles).forEach(([key, value]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = value;
+                roleSelect.appendChild(option);
+            });
+            
+            // Update suggestions
+            const suggestionsContainer = document.getElementById('suggestions');
+            suggestionsContainer.innerHTML = '';
+            t.suggestions.forEach(suggestion => {
+                const div = document.createElement('div');
+                div.className = 'suggestion';
+                div.textContent = suggestion;
+                div.onclick = () => sendSuggestion(suggestion);
+                suggestionsContainer.appendChild(div);
+            });
+        }
+        
+        async function sendOTP() {
+            const phoneInput = document.getElementById('phoneNumber');
+            let phone = phoneInput.value.trim();
+            
+            // Format phone number
+            if (!phone.startsWith('+91')) {
+                if (phone.startsWith('91')) {
+                    phone = '+' + phone;
+                } else if (phone.length === 10) {
+                    phone = '+91' + phone;
+                } else {
+                    alert('कृपया सही फोन नंबर डालें');
+                    return;
+                }
+            }
+            
+            tempPhoneNumber = phone;
+            
+            try {
+                // Check if user exists
+                const response = await fetch('http://localhost:3001/api/auth/check-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                });
+                
+                const data = await response.json();
+                isNewUser = !data.exists;
+                
+                // Simulate OTP sending (in production, integrate with SMS service)
+                console.log('OTP sent to:', phone, '- Demo OTP: 123456');
+                
+                document.getElementById('phoneLoginForm').classList.add('hidden');
+                document.getElementById('otpVerifyForm').classList.remove('hidden');
+                
+                // Show demo OTP for testing
+                alert(`Demo OTP भेजा गया: 123456\n(Production में real SMS होगा)`);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('कुछ गलती हुई। कृपया बाद में कोशिश करें।');
+            }
+        }
+        
+        async function verifyOTP() {
+            const otpCode = document.getElementById('otpCode').value.trim();
+            
+            if (otpCode !== '123456') { // Demo OTP
+                alert('गलत OTP। कृपया दोबारा कोशिश करें।');
+                return;
+            }
+            
+            if (isNewUser) {
+                // New user - show profile setup
+                document.getElementById('otpVerifyForm').classList.add('hidden');
+                document.getElementById('profileSetupForm').classList.remove('hidden');
+            } else {
+                // Existing user - login directly
+                await loginExistingUser();
+            }
+        }
+        
+        async function loginExistingUser() {
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: tempPhoneNumber })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    startChatSession();
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Login में समस्या। कृपया बाद में कोशिश करें।');
+            }
+        }
+        
+        async function completeRegistration() {
+            const name = document.getElementById('userName').value.trim();
+            const role = document.getElementById('userRole').value;
+            const location = document.getElementById('restaurantLocation').value;
+            
+            if (!name || !role || !location) {
+                alert('कृपया सभी fields भरें');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: tempPhoneNumber,
+                        name,
+                        role,
+                        location
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    startChatSession();
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('Registration में समस्या। कृपया बाद में कोशिश करें।');
+            }
+        }
+        
+        function startChatSession() {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('chatContainer').classList.remove('hidden');
+            
+            const { name, role, location } = currentUser;
+            
+            // Welcome message with exact commands
+            let welcomeMsg = '';
+            if (currentLanguage === 'hindi') {
+                if (role === 'owner' || role.includes('manager')) {
+                    welcomeMsg = `नमस्ते ${name}! (${location})\n\n📋 Manager Commands:\n• "सभी काम दिखाओ" - सभी का काम देखें\n• "राज को दाल बनाने का काम दो" - काम assign करें\n• "team performance दिखाओ" - analytics देखें`;
+                } else {
+                    welcomeMsg = `नमस्ते ${name}! (${location})\n\n📋 Staff Commands:\n• "मेरे काम दिखाओ" - अपने काम देखें\n• "काम पूरा हुआ" - काम complete करें\n• "देर हो रही है क्योंकि..." - problem report करें`;
+                }
+            } else {
+                if (role === 'owner' || role.includes('manager')) {
+                    welcomeMsg = `Hello ${name}! (${location})\n\n📋 Manager Commands:\n• "Show my tasks" - View all tasks\n• "Assign make tea to Raj" - Assign new task\n• "Show team performance" - View analytics`;
+                } else {
+                    welcomeMsg = `Hello ${name}! (${location})\n\n📋 Staff Commands:\n• "Show my tasks" - View your tasks\n• "Task completed" - Mark task done\n• "Delayed because..." - Report problems`;
+                }
+            }
+            
+            addMessage(welcomeMsg, 'ai');
+        }
+        
+        function addMessage(text, type) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Debug: Check if user is logged in
+            if (!currentUser) {
+                addMessage('Please login first!', 'ai');
+                return;
+            }
+            
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Check for task-related commands
+            const lowerMessage = message.toLowerCase();
+            
+            // Show tasks
+            if (lowerMessage.includes('show my tasks') || lowerMessage.includes('मेरे काम दिखाओ') || lowerMessage.includes('my tasks') || lowerMessage.includes('सभी काम दिखाओ')) {
+                await showTasks();
+                return;
+            }
+            
+            // Task completion
+            if (lowerMessage.includes('काम पूरा हुआ') || lowerMessage.includes('task completed') || lowerMessage.includes('done') || lowerMessage.includes('complete')) {
+                await updateTaskStatus('completed', 'Task completed');
+                return;
+            }
+            
+            // Task delay reporting
+            if (lowerMessage.includes('देर हो रही है') || lowerMessage.includes('delayed because') || lowerMessage.includes('problem')) {
+                const reason = message.replace(/देर हो रही है क्योंकि|delayed because|problem:/gi, '').trim();
+                await updateTaskStatus('delayed', reason || 'Delay reported');
+                return;
+            }
+            
+            // Task assignment (for managers)
+            if (await handleTaskAssignment(message)) {
+                return;
+            }
+            
+            // Show typing indicator
+            addMessage(currentLanguage === 'hindi' ? 'टाइप कर रहा हूँ...' : 'Typing...', 'ai');
+            
+            try {
+                console.log('Sending message:', message, 'User:', currentUser);
+                
+                const response = await fetch('http://localhost:3001/api/chat/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        userRole: currentUser.role,
+                        preferredLanguage: currentLanguage
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                // Remove typing indicator
+                const messages = document.getElementById('messages');
+                messages.removeChild(messages.lastChild);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage(data.response, 'ai');
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (error) {
+                // Remove typing indicator
+                const messages = document.getElementById('messages');
+                if (messages.lastChild) {
+                    messages.removeChild(messages.lastChild);
+                }
+                
+                const errorMsg = currentLanguage === 'hindi' ? 
+                    'माफ करें, server से connection नहीं हो पा रहा। क्या backend चल रहा है?' :
+                    'Sorry, cannot connect to server. Is the backend running?';
+                addMessage(errorMsg, 'ai');
+            }
+        }
+        
+        async function showTasks() {
+            try {
+                // For managers/owners, show all tasks. For others, show their assigned tasks
+                const endpoint = (currentUser.role === 'manager' || currentUser.role === 'owner') ? 
+                    'http://localhost:3001/api/tasks/all/tasks' :
+                    `http://localhost:3001/api/tasks/assignee/${encodeURIComponent(currentUser.name)}`;
+                
+                console.log('Fetching tasks from:', endpoint);
+                console.log('Current user:', currentUser);
+                
+                const response = await fetch(endpoint);
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    const tasks = data.tasks;
+                    const summary = data.summary;
+                    
+                    let taskMessage = '';
+                    
+                    if (currentUser.role === 'manager' || currentUser.role === 'owner') {
+                        taskMessage = currentLanguage === 'hindi' ? 
+                            `📋 सभी काम (कुल: ${summary.total})\n\n` :
+                            `📋 All Tasks (Total: ${summary.total})\n\n`;
+                    } else {
+                        taskMessage = currentLanguage === 'hindi' ? 
+                            `📋 आपके काम (कुल: ${summary.total})\n\n` :
+                            `📋 Your Tasks (Total: ${summary.total})\n\n`;
+                    }
+                    
+                    if (tasks.length === 0) {
+                        taskMessage += currentLanguage === 'hindi' ? 
+                            'कोई काम नहीं मिला। बहुत बढ़िया! 🎉' :
+                            'No tasks found. Great job! 🎉';
+                    } else {
+                        tasks.forEach(task => {
+                            const statusEmoji = task.status === 'completed' ? '✅' : 
+                                              task.status === 'in-progress' ? '🔄' : 
+                                              task.status === 'delayed' ? '⚠️' : '⏳';
+                            
+                            taskMessage += `${statusEmoji} ${task.title}\n`;
+                            taskMessage += `   👤 ${task.assignedTo} (by ${task.assignedBy})\n`;
+                            taskMessage += `   📝 ${task.description}\n`;
+                            
+                            if (task.statusNote) {
+                                taskMessage += `   💬 "${task.statusNote}"\n`;
+                            }
+                            
+                            if (task.status !== 'completed') {
+                                taskMessage += `   📊 Status: ${task.status}\n`;
+                            }
+                            
+                            const createdTime = new Date(task.createdAt).toLocaleTimeString('hi-IN', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            taskMessage += `   🕐 ${createdTime}\n\n`;
+                        });
+                        
+                        // Show quick action suggestions for non-managers
+                        if (currentUser.role !== 'manager' && currentUser.role !== 'owner') {
+                            const pendingTasks = tasks.filter(t => t.status === 'pending' || t.status === 'in-progress');
+                            if (pendingTasks.length > 0) {
+                                taskMessage += currentLanguage === 'hindi' ? 
+                                    '\n💡 काम पूरा होने पर लिखें: "काम पूरा हुआ"\n💡 देर हो रही है तो लिखें: "देर हो रही है क्योंकि..."' :
+                                    '\n💡 When done, type: "Task completed"\n💡 If delayed, type: "Delayed because..."';
+                            }
+                        }
+                    }
+                    
+                    addMessage(taskMessage, 'ai');
+                } else {
+                    throw new Error('Failed to fetch tasks');
+                }
+            } catch (error) {
+                const errorMsg = currentLanguage === 'hindi' ? 
+                    'काम की list नहीं मिल पाई। कृपया बाद में कोशिश करें।' :
+                    'Could not fetch tasks. Please try again later.';
+                addMessage(errorMsg, 'ai');
+            }
+        }
+        
+        async function updateTaskStatus(status, note) {
+            try {
+                // Get user's pending tasks first
+                const response = await fetch(`http://localhost:3001/api/tasks/assignee/${currentUser.name}`);
+                const data = await response.json();
+                
+                if (data.success && data.tasks.length > 0) {
+                    // Find the most recent pending/in-progress task
+                    const activeTask = data.tasks.find(task => 
+                        task.status === 'pending' || task.status === 'in-progress'
+                    );
+                    
+                    if (activeTask) {
+                        // Update the task status
+                        const updateResponse = await fetch(`http://localhost:3001/api/tasks/${activeTask.id}/status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ 
+                                status: status,
+                                statusNote: note,
+                                updatedBy: currentUser.name
+                            })
+                        });
+                        
+                        if (updateResponse.ok) {
+                            const successMsg = currentLanguage === 'hindi' ? 
+                                `✅ "${activeTask.title}" का status update हो गया।\n💬 Note: "${note}"` :
+                                `✅ "${activeTask.title}" status updated.\n💬 Note: "${note}"`;
+                            addMessage(successMsg, 'ai');
+                        } else {
+                            throw new Error('Failed to update task');
+                        }
+                    } else {
+                        const noTaskMsg = currentLanguage === 'hindi' ? 
+                            'कोई active काम नहीं मिला। पहले "मेरे काम दिखाओ" करें।' :
+                            'No active tasks found. First check "show my tasks".';
+                        addMessage(noTaskMsg, 'ai');
+                    }
+                } else {
+                    const noTaskMsg = currentLanguage === 'hindi' ? 
+                        'आपके पास कोई काम नहीं है।' :
+                        'You have no tasks assigned.';
+                    addMessage(noTaskMsg, 'ai');
+                }
+            } catch (error) {
+                const errorMsg = currentLanguage === 'hindi' ? 
+                    'Status update नहीं हो सका। कृपया बाद में कोशिश करें।' :
+                    'Could not update status. Please try again later.';
+                addMessage(errorMsg, 'ai');
+            }
+        }
+        
+        async function handleTaskAssignment(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Simple patterns for task assignment
+            if (lowerMessage.includes('को') && (lowerMessage.includes('काम दो') || lowerMessage.includes('assign करो'))) {
+                // Hindi: "राज को दाल बनाने का काम दो"
+                const parts = message.split('को');
+                if (parts.length >= 2) {
+                    const assignTo = parts[0].trim();
+                    const taskPart = parts[1].replace(/का काम दो|assign करो/gi, '').trim();
+                    await createTaskViaChat(taskPart, assignTo);
+                    return true;
+                }
+            }
+            
+            if (lowerMessage.includes('assign') && lowerMessage.includes('to')) {
+                // English: "assign make dal to raj"
+                const assignMatch = message.match(/assign\s+(.+?)\s+to\s+(\w+)/i);
+                if (assignMatch) {
+                    const taskTitle = assignMatch[1].trim();
+                    const assignTo = assignMatch[2].trim();
+                    await createTaskViaChat(taskTitle, assignTo);
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        async function createTaskViaChat(title, assignTo) {
+            try {
+                const response = await fetch('http://localhost:3001/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: `Task assigned via chat by ${currentUser.name}`,
+                        assignedTo: assignTo,
+                        assignedBy: currentUser.name,
+                        role: 'general',
+                        priority: 'medium'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const successMsg = currentLanguage === 'hindi' ? 
+                        `✅ काम "${title}" को ${assignTo} को assign कर दिया गया है।` :
+                        `✅ Task "${title}" has been assigned to ${assignTo}.`;
+                    addMessage(successMsg, 'ai');
+                } else {
+                    throw new Error('Failed to create task');
+                }
+            } catch (error) {
+                const errorMsg = currentLanguage === 'hindi' ? 
+                    'काम assign नहीं हो सका। कृपया बाद में कोशिश करें।' :
+                    'Could not assign task. Please try again later.';
+                addMessage(errorMsg, 'ai');
+            }
+        }
+        
+        function sendSuggestion(suggestion) {
+            document.getElementById('messageInput').value = suggestion;
+            sendMessage();
+        }
+        
+        // Enter key support
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        document.getElementById('userName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
