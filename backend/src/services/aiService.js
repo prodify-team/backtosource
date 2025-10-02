@@ -119,57 +119,164 @@ Response Format:
     return knowledge;
   }
 
+  // Dynamic knowledge mapping based on file names
+  createKnowledgeMapping() {
+    const fs = require('fs');
+    const path = require('path');
+    
+    this.knowledgeMapping = {
+      // Recipe keywords extracted from file names
+      recipes: {},
+      // SOP keywords extracted from file names  
+      sops: {},
+      // Training keywords extracted from file names
+      training: {},
+      // Location keywords extracted from file names
+      locations: {},
+      // FAQ keywords extracted from file names
+      faqs: {}
+    };
+
+    // Load and map all knowledge base files
+    this.restaurantKnowledge = this.loadTrainingData();
+    
+    // Create smart keyword mappings from file names
+    Object.keys(this.restaurantKnowledge.recipes).forEach(fileName => {
+      const keywords = this.extractKeywords(fileName);
+      this.knowledgeMapping.recipes[fileName] = keywords;
+    });
+
+    Object.keys(this.restaurantKnowledge.sops).forEach(fileName => {
+      const keywords = this.extractKeywords(fileName);
+      this.knowledgeMapping.sops[fileName] = keywords;
+    });
+
+    Object.keys(this.restaurantKnowledge.training).forEach(fileName => {
+      const keywords = this.extractKeywords(fileName);
+      this.knowledgeMapping.training[fileName] = keywords;
+    });
+
+    Object.keys(this.restaurantKnowledge.locations).forEach(fileName => {
+      const keywords = this.extractKeywords(fileName);
+      this.knowledgeMapping.locations[fileName] = keywords;
+    });
+
+    console.log('🧠 Knowledge mapping created:', {
+      recipes: Object.keys(this.knowledgeMapping.recipes).length,
+      sops: Object.keys(this.knowledgeMapping.sops).length,
+      training: Object.keys(this.knowledgeMapping.training).length,
+      locations: Object.keys(this.knowledgeMapping.locations).length
+    });
+  }
+
+  // Extract keywords from file names for smart matching
+  extractKeywords(fileName) {
+    const keywords = [];
+    
+    // Split by hyphens and underscores
+    const parts = fileName.split(/[-_]/);
+    
+    // Add each part as keyword
+    parts.forEach(part => {
+      keywords.push(part.toLowerCase());
+      
+      // Add common variations
+      if (part === 'dal') keywords.push('दाल', 'lentil');
+      if (part === 'makhani') keywords.push('मखनी', 'butter', 'creamy');
+      if (part === 'kitchen') keywords.push('रसोई', 'cooking');
+      if (part === 'hygiene') keywords.push('सफाई', 'cleanliness', 'safety');
+      if (part === 'waiter') keywords.push('वेटर', 'service', 'customer');
+      if (part === 'training') keywords.push('प्रशिक्षण', 'learning', 'guide');
+    });
+
+    // Add full filename as keyword
+    keywords.push(fileName.replace(/[-_]/g, ' ').toLowerCase());
+    
+    return keywords;
+  }
+
+  // Smart knowledge finder based on file names and content
   findRelevantKnowledge(message, userContext) {
+    if (!this.knowledgeMapping) {
+      this.createKnowledgeMapping();
+    }
+
     const lowerMessage = message.toLowerCase();
     let relevantContent = '';
+    let matchedFiles = [];
 
-    // Check for recipe queries
-    Object.keys(this.restaurantKnowledge.recipes).forEach(recipe => {
-      if (lowerMessage.includes(recipe.replace('-', ' ')) || 
-          lowerMessage.includes(recipe.replace('-', ''))) {
-        relevantContent += `\n\nRecipe Knowledge:\n${this.restaurantKnowledge.recipes[recipe]}`;
+    // Search in recipes
+    Object.keys(this.knowledgeMapping.recipes).forEach(fileName => {
+      const keywords = this.knowledgeMapping.recipes[fileName];
+      if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+        relevantContent += `\n\n📖 Recipe: ${fileName.replace(/-/g, ' ').toUpperCase()}\n${this.restaurantKnowledge.recipes[fileName]}`;
+        matchedFiles.push(`Recipe: ${fileName}`);
       }
     });
 
-    // Check for SOP queries
-    if (lowerMessage.includes('hygiene') || lowerMessage.includes('safety') || 
-        lowerMessage.includes('clean') || lowerMessage.includes('सफाई')) {
-      Object.keys(this.restaurantKnowledge.sops).forEach(sop => {
-        if (sop.includes('hygiene') || sop.includes('safety')) {
-          relevantContent += `\n\nSOP Knowledge:\n${this.restaurantKnowledge.sops[sop]}`;
-        }
-      });
-    }
+    // Search in SOPs
+    Object.keys(this.knowledgeMapping.sops).forEach(fileName => {
+      const keywords = this.knowledgeMapping.sops[fileName];
+      if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+        relevantContent += `\n\n📋 SOP: ${fileName.replace(/-/g, ' ').toUpperCase()}\n${this.restaurantKnowledge.sops[fileName]}`;
+        matchedFiles.push(`SOP: ${fileName}`);
+      }
+    });
 
-    // Check for training queries
-    if (lowerMessage.includes('training') || lowerMessage.includes('new') || 
-        lowerMessage.includes('learn') || lowerMessage.includes('सीखना')) {
-      Object.keys(this.restaurantKnowledge.training).forEach(training => {
-        if (userContext.role && training.includes(userContext.role)) {
-          relevantContent += `\n\nTraining Material:\n${this.restaurantKnowledge.training[training]}`;
-        }
-      });
-    }
+    // Search in training materials
+    Object.keys(this.knowledgeMapping.training).forEach(fileName => {
+      const keywords = this.knowledgeMapping.training[fileName];
+      if (keywords.some(keyword => lowerMessage.includes(keyword)) || 
+          (userContext.role && keywords.includes(userContext.role))) {
+        relevantContent += `\n\n🎓 Training: ${fileName.replace(/-/g, ' ').toUpperCase()}\n${this.restaurantKnowledge.training[fileName]}`;
+        matchedFiles.push(`Training: ${fileName}`);
+      }
+    });
 
-    // Check FAQs
+    // Search in location data
+    Object.keys(this.knowledgeMapping.locations).forEach(fileName => {
+      const keywords = this.knowledgeMapping.locations[fileName];
+      if (keywords.some(keyword => lowerMessage.includes(keyword)) ||
+          (userContext.location && fileName.includes(userContext.location))) {
+        relevantContent += `\n\n📍 Location Info: ${fileName.replace(/-/g, ' ').toUpperCase()}\n${this.restaurantKnowledge.locations[fileName]}`;
+        matchedFiles.push(`Location: ${fileName}`);
+      }
+    });
+
+    // Search in FAQs
     Object.keys(this.restaurantKnowledge.faqs).forEach(faqCategory => {
       const faqs = this.restaurantKnowledge.faqs[faqCategory];
       if (faqs.staff_faqs) {
         faqs.staff_faqs.forEach(faq => {
           if (lowerMessage.includes(faq.question.toLowerCase().substring(0, 10))) {
-            relevantContent += `\n\nFAQ: ${faq.question}\nAnswer: ${faq.answer}`;
+            relevantContent += `\n\n❓ FAQ: ${faq.question}\n✅ Answer: ${faq.answer}`;
+            matchedFiles.push(`FAQ: ${faq.question}`);
           }
         });
       }
     });
+
+    if (matchedFiles.length > 0) {
+      console.log(`🎯 Found relevant knowledge: ${matchedFiles.join(', ')}`);
+    }
 
     return relevantContent;
   }
 
   async processMessage(message, userContext) {
     try {
+      // First, try to get a quick pre-configured response
+      const quickResponse = this.getQuickResponse(message, userContext);
+      if (quickResponse) {
+        console.log('🚀 Quick response provided from knowledge base files');
+        return quickResponse;
+      }
+
       // Search knowledge base for relevant information
       const relevantDocs = KnowledgeBase.searchKnowledge(message);
+      
+      // Also search in file-based knowledge
+      const fileBasedKnowledge = this.findRelevantKnowledge(message, userContext);
       
       // Build contextual prompt with ONLY knowledge base information
       let contextualPrompt = this.systemPrompt;
@@ -189,15 +296,28 @@ Response Format:
         contextualPrompt += `\n\nUser is in management. Focus on operations, staff management from provided knowledge.`;
       }
 
-      // Add relevant knowledge from knowledge base ONLY
+      // Add relevant knowledge from both database and files
+      let hasKnowledge = false;
+      
       if (relevantDocs && relevantDocs.length > 0) {
-        contextualPrompt += `\n\n=== AVAILABLE KNOWLEDGE BASE ===`;
+        contextualPrompt += `\n\n=== DATABASE KNOWLEDGE BASE ===`;
         relevantDocs.forEach((doc, index) => {
           contextualPrompt += `\n\nDocument ${index + 1}: ${doc.title} (Category: ${doc.category})`;
           contextualPrompt += `\nContent: ${doc.content}`;
           contextualPrompt += `\nTags: ${doc.tags.join(', ')}`;
         });
-        contextualPrompt += `\n\n=== END KNOWLEDGE BASE ===`;
+        contextualPrompt += `\n\n=== END DATABASE KNOWLEDGE ===`;
+        hasKnowledge = true;
+      }
+
+      if (fileBasedKnowledge) {
+        contextualPrompt += `\n\n=== FILE-BASED KNOWLEDGE ===`;
+        contextualPrompt += fileBasedKnowledge;
+        contextualPrompt += `\n\n=== END FILE KNOWLEDGE ===`;
+        hasKnowledge = true;
+      }
+
+      if (hasKnowledge) {
         contextualPrompt += `\n\nIMPORTANT: Use ONLY the information provided above. If the answer is not in the knowledge base, say so clearly.`;
       } else {
         contextualPrompt += `\n\nNo relevant information found in knowledge base for this query.`;
@@ -237,6 +357,133 @@ Response Format:
         'माफ करें, यह जानकारी हमारे current knowledge base में उपलब्ध नहीं है। कृपया admin से contact करें या knowledge base में relevant documents add करें।' :
         'Sorry, this information is not available in our current knowledge base. Please contact admin or add relevant documents to the knowledge base.';
     }
+  }
+
+  // Generate pre-configured responses based on knowledge base files
+  generatePreConfiguredResponses() {
+    if (!this.knowledgeMapping) {
+      this.createKnowledgeMapping();
+    }
+
+    const responses = {
+      recipes: {},
+      sops: {},
+      training: {},
+      locations: {},
+      quickHelp: {}
+    };
+
+    // Generate recipe responses
+    Object.keys(this.restaurantKnowledge.recipes).forEach(fileName => {
+      const content = this.restaurantKnowledge.recipes[fileName];
+      const dishName = fileName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      
+      responses.recipes[fileName] = {
+        hindi: `${dishName} की recipe:\n\n${content.substring(0, 300)}...\n\nपूरी जानकारी के लिए admin panel देखें।`,
+        english: `${dishName} Recipe:\n\n${content.substring(0, 300)}...\n\nFor complete details, check admin panel.`,
+        keywords: this.knowledgeMapping.recipes[fileName]
+      };
+    });
+
+    // Generate SOP responses
+    Object.keys(this.restaurantKnowledge.sops).forEach(fileName => {
+      const content = this.restaurantKnowledge.sops[fileName];
+      const sopName = fileName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      
+      responses.sops[fileName] = {
+        hindi: `${sopName} के नियम:\n\n${content.substring(0, 300)}...\n\nसभी staff को इन नियमों का पालन करना जरूरी है।`,
+        english: `${sopName} Guidelines:\n\n${content.substring(0, 300)}...\n\nAll staff must follow these guidelines.`,
+        keywords: this.knowledgeMapping.sops[fileName]
+      };
+    });
+
+    // Generate training responses
+    Object.keys(this.restaurantKnowledge.training).forEach(fileName => {
+      const content = this.restaurantKnowledge.training[fileName];
+      const trainingName = fileName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      
+      responses.training[fileName] = {
+        hindi: `${trainingName} प्रशिक्षण:\n\n${content.substring(0, 300)}...\n\nअधिक जानकारी के लिए training module देखें।`,
+        english: `${trainingName} Training:\n\n${content.substring(0, 300)}...\n\nFor more details, check training module.`,
+        keywords: this.knowledgeMapping.training[fileName]
+      };
+    });
+
+    // Generate location responses
+    Object.keys(this.restaurantKnowledge.locations).forEach(fileName => {
+      const content = this.restaurantKnowledge.locations[fileName];
+      const locationName = fileName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      
+      responses.locations[fileName] = {
+        hindi: `${locationName} की जानकारी:\n\n${content.substring(0, 300)}...\n\nस्थानीय guidelines के लिए manager से संपर्क करें।`,
+        english: `${locationName} Information:\n\n${content.substring(0, 300)}...\n\nContact manager for local guidelines.`,
+        keywords: this.knowledgeMapping.locations[fileName]
+      };
+    });
+
+    // Generate quick help based on available knowledge
+    const availableTopics = [
+      ...Object.keys(responses.recipes),
+      ...Object.keys(responses.sops),
+      ...Object.keys(responses.training)
+    ];
+
+    responses.quickHelp = {
+      hindi: `मैं इन विषयों में आपकी मदद कर सकता हूं:\n\n📖 Recipes: ${Object.keys(responses.recipes).map(f => f.replace(/-/g, ' ')).join(', ')}\n\n📋 SOPs: ${Object.keys(responses.sops).map(f => f.replace(/-/g, ' ')).join(', ')}\n\n🎓 Training: ${Object.keys(responses.training).map(f => f.replace(/-/g, ' ')).join(', ')}\n\nकोई भी topic के बारे में पूछें!`,
+      english: `I can help you with these topics:\n\n📖 Recipes: ${Object.keys(responses.recipes).map(f => f.replace(/-/g, ' ')).join(', ')}\n\n📋 SOPs: ${Object.keys(responses.sops).map(f => f.replace(/-/g, ' ')).join(', ')}\n\n🎓 Training: ${Object.keys(responses.training).map(f => f.replace(/-/g, ' ')).join(', ')}\n\nAsk me about any topic!`
+    };
+
+    console.log('✨ Pre-configured responses generated:', {
+      recipes: Object.keys(responses.recipes).length,
+      sops: Object.keys(responses.sops).length,
+      training: Object.keys(responses.training).length,
+      locations: Object.keys(responses.locations).length
+    });
+
+    return responses;
+  }
+
+  // Quick response matcher for common queries
+  getQuickResponse(message, userContext) {
+    const responses = this.generatePreConfiguredResponses();
+    const lowerMessage = message.toLowerCase();
+    const language = userContext.preferredLanguage || 'hindi';
+
+    // Check for help/menu requests
+    if (lowerMessage.includes('help') || lowerMessage.includes('मदद') || 
+        lowerMessage.includes('menu') || lowerMessage.includes('क्या कर सकते')) {
+      return responses.quickHelp[language];
+    }
+
+    // Check recipes
+    for (const [fileName, response] of Object.entries(responses.recipes)) {
+      if (response.keywords.some(keyword => lowerMessage.includes(keyword))) {
+        return response[language];
+      }
+    }
+
+    // Check SOPs
+    for (const [fileName, response] of Object.entries(responses.sops)) {
+      if (response.keywords.some(keyword => lowerMessage.includes(keyword))) {
+        return response[language];
+      }
+    }
+
+    // Check training
+    for (const [fileName, response] of Object.entries(responses.training)) {
+      if (response.keywords.some(keyword => lowerMessage.includes(keyword))) {
+        return response[language];
+      }
+    }
+
+    // Check locations
+    for (const [fileName, response] of Object.entries(responses.locations)) {
+      if (response.keywords.some(keyword => lowerMessage.includes(keyword))) {
+        return response[language];
+      }
+    }
+
+    return null; // No quick response found
   }
 
   async generateTaskSuggestions(role, restaurantData) {
