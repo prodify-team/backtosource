@@ -67,12 +67,17 @@ router.get('/documents/:id', (req, res) => {
 // Add new document
 router.post('/documents', async (req, res) => {
   try {
+    console.log('📝 POST /api/knowledge/documents - Request received');
+    console.log('Request body:', req.body);
+    
     const { title, category, content, tags, uploadedBy } = req.body;
     
     if (!title || !category || !content) {
+      console.log('❌ Missing required fields:', { title: !!title, category: !!category, content: !!content });
       return res.status(400).json({ error: 'Title, category, and content are required' });
     }
 
+    console.log('✅ Adding document:', title, 'Category:', category);
     const document = await KnowledgeBase.addDocument({
       title,
       category,
@@ -81,21 +86,30 @@ router.post('/documents', async (req, res) => {
       uploadedBy: uploadedBy || 'admin'
     });
 
+    console.log('✅ Document added successfully:', document.title);
     res.json({
       success: true,
       document,
       message: 'Document added successfully'
     });
   } catch (error) {
-    console.error('Add document error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('❌ Add document error:', error);
+    res.status(500).json({ 
+      error: 'Server error: ' + error.message,
+      success: false 
+    });
   }
 });
 
 // Upload document file
 router.post('/upload', upload.single('document'), async (req, res) => {
   try {
+    console.log('📁 POST /api/knowledge/upload - File upload request received');
+    console.log('File info:', req.file ? { name: req.file.originalname, size: req.file.size, type: req.file.mimetype } : 'No file');
+    console.log('Request body:', req.body);
+    
     if (!req.file) {
+      console.log('❌ No file uploaded');
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
@@ -103,9 +117,11 @@ router.post('/upload', upload.single('document'), async (req, res) => {
     const content = req.file.buffer.toString('utf8');
 
     if (!title || !category) {
+      console.log('❌ Missing required fields for upload:', { title: !!title, category: !!category });
       return res.status(400).json({ error: 'Title and category are required' });
     }
 
+    console.log('✅ Processing file upload:', title, 'Category:', category, 'Content length:', content.length);
     const document = await KnowledgeBase.addDocument({
       title,
       category,
@@ -114,14 +130,18 @@ router.post('/upload', upload.single('document'), async (req, res) => {
       uploadedBy: uploadedBy || 'admin'
     });
 
+    console.log('✅ File uploaded and processed successfully:', document.title);
     res.json({
       success: true,
       document,
       message: 'File uploaded and processed successfully'
     });
   } catch (error) {
-    console.error('Upload document error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('❌ Upload document error:', error);
+    res.status(500).json({ 
+      error: 'Server error: ' + error.message,
+      success: false 
+    });
   }
 });
 

@@ -472,6 +472,8 @@
             const tags = document.getElementById('docTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
             
             try {
+                console.log('Submitting document:', { title, category, content: content.substring(0, 50) + '...' });
+                
                 const response = await fetch('/api/knowledge/documents', {
                     method: 'POST',
                     headers: {
@@ -486,15 +488,27 @@
                     })
                 });
                 
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Response data:', data);
                 
                 if (data.success) {
                     showMessage('addMessage', 'Document added successfully!', 'success');
                     document.getElementById('addDocumentForm').reset();
+                    loadManageDocuments(); // Refresh the document list
                 } else {
-                    showMessage('addMessage', 'Error adding document: ' + data.error, 'error');
+                    showMessage('addMessage', 'Error adding document: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
+                console.error('Submit error:', error);
                 showMessage('addMessage', 'Error: ' + error.message, 'error');
             }
         });
@@ -525,12 +539,23 @@
             formData.append('uploadedBy', 'admin');
             
             try {
+                console.log('Uploading file:', selectedFile.name, 'Size:', selectedFile.size);
+                
                 const response = await fetch('/api/knowledge/upload', {
                     method: 'POST',
                     body: formData
                 });
                 
+                console.log('Upload response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Upload error response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Upload response data:', data);
                 
                 if (data.success) {
                     showMessage('uploadMessage', 'File uploaded successfully!', 'success');
@@ -694,8 +719,35 @@
             }
         });
         
+        // Test API connectivity
+        async function testAPI() {
+            try {
+                console.log('Testing API connectivity...');
+                const response = await fetch('/api/test');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ API test successful:', data);
+                return true;
+            } catch (error) {
+                console.error('❌ API test failed:', error);
+                showMessage('addMessage', 'API connection failed: ' + error.message, 'error');
+                return false;
+            }
+        }
+
         // Load dashboard on page load
-        loadDashboard();
+        (async () => {
+            const apiWorking = await testAPI();
+            if (apiWorking) {
+                loadDashboard();
+            } else {
+                console.error('API not working, dashboard not loaded');
+            }
+        })();
     </script>
 </body>
 </html>
