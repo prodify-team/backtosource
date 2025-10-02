@@ -55,7 +55,6 @@ test-*.js
 debug-*.html
 
 # Documentation (keep only essential)
-README.md
 deployment/
 ai-training/
 

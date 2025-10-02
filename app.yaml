@@ -1,10 +1,30 @@
 runtime: nodejs20
 service: default
 
-# Use Node.js server for proper routing
+# Static file handlers - simple approach
 handlers:
-  - url: /.*
-    script: auto
+  # Serve main chatbot at root
+  - url: /
+    static_files: simple-chatbot.html
+    upload: simple-chatbot.html
+    secure: always
+
+  # Serve admin panel
+  - url: /admin-panel.html
+    static_files: admin-panel.html
+    upload: admin-panel.html
+    secure: always
+
+  # Serve other HTML files
+  - url: /(.*\.html)
+    static_files: \1
+    upload: .*\.html
+    secure: always
+
+  # Serve static assets
+  - url: /(.*\.(css|js|png|jpg|jpeg|gif|ico|svg|txt|md))
+    static_files: \1
+    upload: .*\.(css|js|png|jpg|jpeg|gif|ico|svg|txt|md)
     secure: always
 
 # Environment variables
