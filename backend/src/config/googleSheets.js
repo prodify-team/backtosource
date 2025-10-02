@@ -267,11 +267,8 @@ class GoogleSheetsDB {
       
       console.log(`📚 Retrieved ${rows.length} rows from KnowledgeBase sheet`);
       
-      let results = rows.filter(row => {
-        // Access data using get() method or direct property access
-        const isActive = row.get('isActive') || row.isActive;
-        return isActive === 'TRUE' || isActive === 'true' || isActive === true;
-      });
+      // Don't filter here - return all rows and let the caller handle filtering
+      let results = rows;
       
       console.log(`📚 Filtered to ${results.length} active documents`);
       

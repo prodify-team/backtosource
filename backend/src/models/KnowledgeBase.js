@@ -244,7 +244,7 @@ Violations result in immediate action as per company policy.`,
           id: result.id,
           title: result.title,
           category: result.category,
-          isActive: result.isActive === 'true',
+          isActive: result.isActive === 'TRUE' || result.isActive === 'true' || result.isActive === true,
           updatedAt: result.updatedAt
         }));
         
