@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -55,20 +54,8 @@ io.on('connection', (socket) => {
   });
 });
 
-// MongoDB connection (optional for demo)
-if (process.env.MONGODB_URI) {
-  mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }).then(() => {
-    console.log('Connected to MongoDB');
-  }).catch(err => {
-    console.log('MongoDB connection error:', err.message);
-    console.log('Running in demo mode without database');
-  });
-} else {
-  console.log('No MongoDB URI provided - running in demo mode');
-}
+// Using Google Sheets as database - no MongoDB needed
+console.log('🗄️  Using Google Sheets as database backend');
 
 const PORT = process.env.PORT || 3002;
 server.listen(PORT, () => {
