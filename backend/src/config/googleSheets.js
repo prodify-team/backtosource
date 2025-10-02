@@ -219,7 +219,7 @@ class GoogleSheetsDB {
         tags: Array.isArray(docData.tags) ? docData.tags.join(', ') : docData.tags,
         uploadedBy: docData.uploadedBy || 'admin',
         version: '1',
-        isActive: 'true',
+        isActive: 'TRUE',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
