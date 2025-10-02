@@ -242,11 +242,23 @@ class GoogleSheetsDB {
       
       const searchTerm = query.toLowerCase();
       let results = rows.filter(row => {
-        const titleMatch = row.title && row.title.toLowerCase().includes(searchTerm);
-        const contentMatch = row.content && row.content.toLowerCase().includes(searchTerm);
-        const tagsMatch = row.tags && row.tags.toLowerCase().includes(searchTerm);
-        const categoryMatch = !category || row.category === category;
-        const isActive = row.isActive === 'true';
+        // Access data using raw data array for Google Sheets
+        const titleIndex = sheet.headerValues.indexOf('title');
+        const contentIndex = sheet.headerValues.indexOf('content');
+        const tagsIndex = sheet.headerValues.indexOf('tags');
+        const categoryIndex = sheet.headerValues.indexOf('category');
+        const isActiveIndex = sheet.headerValues.indexOf('isActive');
+        
+        const title = row._rawData[titleIndex] || '';
+        const content = row._rawData[contentIndex] || '';
+        const tags = row._rawData[tagsIndex] || '';
+        const rowCategory = row._rawData[categoryIndex] || '';
+        const isActive = row._rawData[isActiveIndex] === 'TRUE';
+        
+        const titleMatch = title.toLowerCase().includes(searchTerm);
+        const contentMatch = content.toLowerCase().includes(searchTerm);
+        const tagsMatch = tags.toLowerCase().includes(searchTerm);
+        const categoryMatch = !category || rowCategory === category;
         
         return (titleMatch || contentMatch || tagsMatch) && categoryMatch && isActive;
       });
