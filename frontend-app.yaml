@@ -1,5 +1,5 @@
-runtime: python39
-service: default
+runtime: python311
+service: frontend
 
 # Static file serving for frontend
 handlers:
@@ -51,12 +51,3 @@ handlers:
 automatic_scaling:
   min_instances: 0
   max_instances: 5
-
-# Simple Python app for routing
-skip_files:
-  - ^(.*/)?#.*#$
-  - ^(.*/)?.*~$
-  - ^(.*/)?.*\.py[co]$
-  - ^(.*/)?.*/RCS/.*$
-  - ^(.*/)?\..*$
-  - ^(.*/)?node_modules/.*$

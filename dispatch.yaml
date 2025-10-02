@@ -20,5 +20,5 @@ dispatch:
     service: default
 
   # All other requests go to default service
-  - url: "*"
+  - url: "*/*"
     service: default

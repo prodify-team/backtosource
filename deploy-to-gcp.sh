@@ -5,9 +5,14 @@ echo "📧 Project: maximal-ceiling-472713-k4"
 echo "🔗 GitHub: https://github.com/prodify-team/backtosource"
 echo ""
 
-# Step 1: Login and set project
-echo "🔐 Step 1: Login to Google Cloud..."
-gcloud auth login
+# Check if already logged in
+if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q .; then
+    echo "🔐 Step 1: Login to Google Cloud..."
+    gcloud auth login
+fi
+
+# Set project
+echo "⚙️  Setting project..."
 gcloud config set project maximal-ceiling-472713-k4
 
 # Step 2: Enable required APIs
@@ -16,44 +21,21 @@ gcloud services enable appengine.googleapis.com
 gcloud services enable cloudbuild.googleapis.com
 gcloud services enable sheets.googleapis.com
 
-# Step 3: Initialize App Engine (if not already done)
-echo "🏗️  Step 3: Initializing App Engine..."
-gcloud app create --region=us-central1 || echo "App Engine already exists"
-
-# Step 4: Connect GitHub repository to Cloud Build
-echo "🔗 Step 4: Connecting GitHub repository..."
-gcloud builds triggers create github \
-  --repo-name=backtosource \
-  --repo-owner=prodify-team \
-  --branch-pattern=main \
-  --build-config=cloudbuild.yaml \
-  --description="Auto-deploy Back to Source on push to main" || echo "Trigger already exists"
-
-# Step 5: Deploy the application
-echo "🚀 Step 5: Deploying application..."
-
-# Deploy main app (frontend)
-echo "📱 Deploying frontend..."
-gcloud app deploy app.yaml --quiet
-
-# Deploy backend API
-echo "🔧 Deploying backend API..."
+# Step 3: Deploy the backend API first
+echo "🔧 Step 3: Deploying backend API..."
 gcloud app deploy backend/app.yaml --quiet
 
-# Deploy frontend service
-echo "🌐 Deploying frontend service..."
-gcloud app deploy frontend-app.yaml --quiet
+# Step 4: Deploy the main frontend
+echo "📱 Step 4: Deploying main frontend..."
+gcloud app deploy app.yaml --quiet
 
-# Deploy dispatch rules
-echo "🔀 Deploying dispatch rules..."
-gcloud app deploy dispatch.yaml --quiet
-
-# Step 6: Get the deployed URL
+# Step 5: Get the deployed URL
 echo ""
 echo "✅ Deployment Complete!"
 echo ""
 echo "🌐 Your application is now live at:"
-gcloud app browse --no-launch-browser
+APP_URL=$(gcloud app browse --no-launch-browser 2>&1 | grep -o 'https://[^[:space:]]*')
+echo "$APP_URL"
 
 echo ""
 echo "📊 Google Sheets Dashboard:"
@@ -72,3 +54,8 @@ echo "- $0/month database cost vs $50-100/month traditional DB"
 echo ""
 echo "🔧 To update the app, just push to GitHub main branch!"
 echo "git push origin main"
+echo ""
+echo "📋 Next Steps:"
+echo "1. Test the app at: $APP_URL"
+echo "2. Check Google Sheets for real-time data"
+echo "3. Share the URL with your 350+ team members"
