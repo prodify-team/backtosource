@@ -22,7 +22,7 @@ const upload = multer({
 });
 
 // Get all documents
-router.get('/documents', (req, res) => {
+router.get('/documents', async (req, res) => {
   try {
     const { category, search, active } = req.query;
     const filters = {};
@@ -31,7 +31,7 @@ router.get('/documents', (req, res) => {
     if (search) filters.search = search;
     if (active !== undefined) filters.isActive = active === 'true';
 
-    const documents = KnowledgeBase.getAllDocuments(filters);
+    const documents = await KnowledgeBase.getAllDocuments(filters);
     
     res.json({
       success: true,
@@ -65,7 +65,7 @@ router.get('/documents/:id', (req, res) => {
 });
 
 // Add new document
-router.post('/documents', (req, res) => {
+router.post('/documents', async (req, res) => {
   try {
     const { title, category, content, tags, uploadedBy } = req.body;
     
@@ -73,7 +73,7 @@ router.post('/documents', (req, res) => {
       return res.status(400).json({ error: 'Title, category, and content are required' });
     }
 
-    const document = KnowledgeBase.addDocument({
+    const document = await KnowledgeBase.addDocument({
       title,
       category,
       content,
@@ -93,7 +93,7 @@ router.post('/documents', (req, res) => {
 });
 
 // Upload document file
-router.post('/upload', upload.single('document'), (req, res) => {
+router.post('/upload', upload.single('document'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -106,7 +106,7 @@ router.post('/upload', upload.single('document'), (req, res) => {
       return res.status(400).json({ error: 'Title and category are required' });
     }
 
-    const document = KnowledgeBase.addDocument({
+    const document = await KnowledgeBase.addDocument({
       title,
       category,
       content,
@@ -174,7 +174,7 @@ router.delete('/documents/:id', (req, res) => {
 });
 
 // Search knowledge base
-router.get('/search', (req, res) => {
+router.get('/search', async (req, res) => {
   try {
     const { q, category } = req.query;
     
@@ -182,7 +182,7 @@ router.get('/search', (req, res) => {
       return res.status(400).json({ error: 'Search query is required' });
     }
 
-    const results = KnowledgeBase.searchKnowledge(q, category);
+    const results = await KnowledgeBase.searchKnowledge(q, category);
     
     res.json({
       success: true,

@@ -61,7 +61,7 @@ Violations result in immediate action as per company policy.`,
     });
   }
 
-  addDocument(docData) {
+  async addDocument(docData) {
     const document = {
       id: docData.id || `doc_${Date.now()}`,
       title: docData.title,
@@ -75,6 +75,22 @@ Violations result in immediate action as per company policy.`,
       version: docData.version || 1
     };
 
+    try {
+      // Try to save to Google Sheets first
+      const GoogleSheetsDB = require('../config/googleSheets');
+      await GoogleSheetsDB.createKnowledgeDocument({
+        title: document.title,
+        category: document.category,
+        content: document.content,
+        tags: Array.isArray(document.tags) ? document.tags.join(', ') : document.tags,
+        uploadedBy: document.uploadedBy
+      });
+      console.log(`📄 Document saved to Google Sheets: ${document.title} (${document.category})`);
+    } catch (error) {
+      console.log(`⚠️  Failed to save to Google Sheets, using local storage: ${error.message}`);
+    }
+
+    // Also save to local memory as backup
     this.documents.set(document.id, document);
     console.log(`📄 Document added: ${document.title} (${document.category})`);
     return document;
@@ -109,7 +125,32 @@ Violations result in immediate action as per company policy.`,
     return this.documents.get(id);
   }
 
-  getAllDocuments(filters = {}) {
+  async getAllDocuments(filters = {}) {
+    try {
+      // First try Google Sheets database
+      const GoogleSheetsDB = require('../config/googleSheets');
+      const sheetsResults = await GoogleSheetsDB.getAllKnowledgeDocuments(filters);
+      
+      if (sheetsResults && sheetsResults.length > 0) {
+        console.log(`📚 Found ${sheetsResults.length} documents in Google Sheets`);
+        return sheetsResults.map(result => ({
+          id: result.id,
+          title: result.title,
+          category: result.category,
+          content: result.content,
+          tags: typeof result.tags === 'string' ? result.tags.split(', ') : (result.tags || []),
+          createdAt: result.createdAt,
+          updatedAt: result.updatedAt,
+          isActive: result.isActive === 'true',
+          uploadedBy: result.uploadedBy,
+          version: result.version
+        }));
+      }
+    } catch (error) {
+      console.log('⚠️  Google Sheets getAllDocuments failed, using local knowledge:', error.message);
+    }
+
+    // Fallback to in-memory documents
     let docs = Array.from(this.documents.values());
 
     if (filters.category) {
@@ -132,7 +173,28 @@ Violations result in immediate action as per company policy.`,
     return docs.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
   }
 
-  searchKnowledge(query, category = null) {
+  async searchKnowledge(query, category = null) {
+    try {
+      // First try Google Sheets database
+      const GoogleSheetsDB = require('../config/googleSheets');
+      const sheetsResults = await GoogleSheetsDB.searchKnowledgeBase(query, category);
+      
+      if (sheetsResults && sheetsResults.length > 0) {
+        console.log(`🔍 Found ${sheetsResults.length} results in Google Sheets for: ${query}`);
+        return sheetsResults.map(result => ({
+          id: result.id,
+          title: result.title,
+          category: result.category,
+          content: result.content,
+          tags: typeof result.tags === 'string' ? result.tags.split(', ') : (result.tags || []),
+          relevanceScore: 10 // High score for database results
+        }));
+      }
+    } catch (error) {
+      console.log('⚠️  Google Sheets search failed, using local knowledge:', error.message);
+    }
+
+    // Fallback to in-memory search
     const searchTerm = query.toLowerCase();
     let relevantDocs = Array.from(this.documents.values())
       .filter(doc => doc.isActive);
@@ -160,10 +222,13 @@ Violations result in immediate action as per company policy.`,
       return { ...doc, relevanceScore: score };
     });
 
-    return scoredDocs
+    const results = scoredDocs
       .filter(doc => doc.relevanceScore > 0)
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, 5); // Return top 5 most relevant
+
+    console.log(`🔍 Found ${results.length} results in local knowledge for: ${query}`);
+    return results;
   }
 
   getKnowledgeStats() {

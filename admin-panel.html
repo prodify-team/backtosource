@@ -415,7 +415,7 @@
         // Load dashboard statistics
         async function loadDashboard() {
             try {
-                const response = await fetch('http://localhost:3001/api/knowledge/stats');
+                const response = await fetch('/api/knowledge/stats');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -472,7 +472,7 @@
             const tags = document.getElementById('docTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
             
             try {
-                const response = await fetch('http://localhost:3001/api/knowledge/documents', {
+                const response = await fetch('/api/knowledge/documents', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -525,7 +525,7 @@
             formData.append('uploadedBy', 'admin');
             
             try {
-                const response = await fetch('http://localhost:3001/api/knowledge/upload', {
+                const response = await fetch('/api/knowledge/upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -554,8 +554,8 @@
         async function loadDocuments() {
             const category = document.getElementById('filterCategory').value;
             const url = category ? 
-                `http://localhost:3001/api/knowledge/documents?category=${category}` :
-                'http://localhost:3001/api/knowledge/documents';
+                `/api/knowledge/documents?category=${category}` :
+                '/api/knowledge/documents';
             
             try {
                 const response = await fetch(url);
@@ -593,7 +593,7 @@
             }
             
             try {
-                const response = await fetch(`http://localhost:3001/api/knowledge/documents/${id}`, {
+                const response = await fetch(`/api/knowledge/documents/${id}`, {
                     method: 'DELETE'
                 });
                 
@@ -620,8 +620,8 @@
             }
             
             const url = category ? 
-                `http://localhost:3001/api/knowledge/search?q=${encodeURIComponent(query)}&category=${category}` :
-                `http://localhost:3001/api/knowledge/search?q=${encodeURIComponent(query)}`;
+                `/api/knowledge/search?q=${encodeURIComponent(query)}&category=${category}` :
+                `/api/knowledge/search?q=${encodeURIComponent(query)}`;
             
             try {
                 const response = await fetch(url);

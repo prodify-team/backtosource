@@ -273,7 +273,7 @@ Response Format:
       }
 
       // Search knowledge base for relevant information
-      const relevantDocs = KnowledgeBase.searchKnowledge(message);
+      const relevantDocs = await KnowledgeBase.searchKnowledge(message);
       
       // Also search in file-based knowledge
       const fileBasedKnowledge = this.findRelevantKnowledge(message, userContext);
@@ -344,7 +344,7 @@ Response Format:
       console.error('AI Service Error:', error);
       
       // Strict fallback - only use knowledge base
-      const relevantDocs = KnowledgeBase.searchKnowledge(message);
+      const relevantDocs = await KnowledgeBase.searchKnowledge(message);
       
       if (relevantDocs && relevantDocs.length > 0) {
         const topDoc = relevantDocs[0];
