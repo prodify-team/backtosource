@@ -123,4 +123,8 @@ credentials*.json
 
 # Test files
 test-*.js
-debug-*.html
+debug-*.html#
+ SECURITY: Never commit these files
+backend/env_variables.yaml
+env_variables.yaml
+**/env_variables.yaml
