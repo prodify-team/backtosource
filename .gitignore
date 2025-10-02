@@ -115,4 +115,12 @@ config/production.json
 
 # Backup files
 *.backup
-*.bak
+*.bak# Goog
+le Cloud Service Account Keys
+*.json
+service-account*.json
+credentials*.json
+
+# Test files
+test-*.js
+debug-*.html

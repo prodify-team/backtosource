@@ -3,16 +3,24 @@ const router = express.Router();
 
 // In-memory user storage for demo (in production, use database)
 const users = new Map();
+const GoogleSheetsDB = require('../config/googleSheets');
+
+// Initialize Google Sheets on startup
+GoogleSheetsDB.initialize().catch(console.error);
 
 // Check if user exists
 router.post('/check-user', async (req, res) => {
   try {
     const { phone } = req.body;
-    const exists = users.has(phone);
+    
+    // Check Google Sheets first, then fallback to local
+    const sheetsUser = await GoogleSheetsDB.findUserByPhone(phone);
+    const localExists = users.has(phone);
+    const exists = sheetsUser || localExists;
     
     res.json({
       success: true,
-      exists,
+      exists: !!exists,
       message: exists ? 'User found' : 'New user'
     });
   } catch (error) {
@@ -30,13 +38,21 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    const user = {
-      _id: Date.now().toString(),
+    const userData = {
       phone,
       name: name.trim(),
       role,
       location,
-      preferredLanguage: 'hindi',
+      preferredLanguage: 'hindi'
+    };
+
+    // Try to save to Google Sheets first
+    const sheetsUser = await GoogleSheetsDB.createUser(userData);
+    
+    // Also save locally as backup
+    const user = {
+      _id: sheetsUser?.id || Date.now().toString(),
+      ...userData,
       isActive: true,
       joinedAt: new Date(),
       lastSeen: new Date()

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const TaskManager = require('../models/Task');
+const GoogleSheetsDB = require('../config/googleSheets');
 
 // Initialize demo tasks on first load
 TaskManager.initializeDemoTasks();
@@ -73,10 +74,15 @@ router.get('/:role', (req, res) => {
 });
 
 // Create new task
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const taskData = req.body;
-    const task = TaskManager.createTask(taskData);
+    
+    // Try Google Sheets first, then fallback to local
+    const sheetsTask = await GoogleSheetsDB.createTask(taskData);
+    const localTask = TaskManager.createTask(taskData);
+    
+    const task = sheetsTask || localTask;
     
     res.json({
       success: true,

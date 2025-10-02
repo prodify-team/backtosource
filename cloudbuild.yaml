@@ -1,0 +1,65 @@
+# Cloud Build configuration for CI/CD
+# Automatically deploy when code is pushed to main branch
+
+steps:
+  # Install backend dependencies
+  - name: 'node:18'
+    entrypoint: 'npm'
+    args: ['install']
+    dir: 'backend'
+
+  # Run backend tests (if you add them)
+  # - name: 'node:18'
+  #   entrypoint: 'npm'
+  #   args: ['test']
+  #   dir: 'backend'
+
+  # Deploy backend service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: 
+      - 'app'
+      - 'deploy'
+      - 'backend/app.yaml'
+      - '--quiet'
+      - '--no-promote'
+
+  # Deploy frontend service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: 
+      - 'app'
+      - 'deploy'
+      - 'frontend-app.yaml'
+      - '--quiet'
+      - '--no-promote'
+
+  # Deploy dispatch configuration
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: 
+      - 'app'
+      - 'deploy'
+      - 'dispatch.yaml'
+      - '--quiet'
+
+  # Promote to live traffic (remove --no-promote flags above)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: 
+      - 'app'
+      - 'services'
+      - 'set-traffic'
+      - 'default=100'
+      - 'api=100'
+
+# Build timeout
+timeout: '1200s'
+
+# Substitutions for different environments
+substitutions:
+  _ENVIRONMENT: 'production'
+
+# Options
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -1,0 +1,24 @@
+# URL routing configuration for Google App Engine
+# This routes requests to appropriate services
+
+dispatch:
+  # API requests go to backend service
+  - url: "*/api/*"
+    service: api
+
+  # Admin panel and main app go to default service
+  - url: "*/"
+    service: default
+    
+  - url: "*/simple-chatbot.html"
+    service: default
+    
+  - url: "*/admin-panel.html"
+    service: default
+    
+  - url: "*/admin"
+    service: default
+
+  # All other requests go to default service
+  - url: "*"
+    service: default
