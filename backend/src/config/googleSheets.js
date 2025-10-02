@@ -265,10 +265,22 @@ class GoogleSheetsDB {
       const sheet = this.sheets['KnowledgeBase'];
       const rows = await sheet.getRows();
       
-      let results = rows.filter(row => row.isActive === 'true');
+      console.log(`📚 Retrieved ${rows.length} rows from KnowledgeBase sheet`);
+      
+      let results = rows.filter(row => {
+        // Access data using get() method or direct property access
+        const isActive = row.get('isActive') || row.isActive;
+        return isActive === 'TRUE' || isActive === 'true' || isActive === true;
+      });
+      
+      console.log(`📚 Filtered to ${results.length} active documents`);
       
       if (filters.category) {
-        results = results.filter(row => row.category === filters.category);
+        results = results.filter(row => {
+          const category = row.get('category') || row.category;
+          return category === filters.category;
+        });
+        console.log(`📚 Category filtered to ${results.length} documents`);
       }
       
       return results.map(row => this.rowToObject(row));
@@ -303,10 +315,28 @@ class GoogleSheetsDB {
   // Utility functions
   rowToObject(row) {
     const obj = {};
-    Object.keys(row._rawData).forEach((key, index) => {
-      const header = row._sheet.headerValues[index];
-      obj[header] = row._rawData[key];
-    });
+    
+    // Get the sheet and headers
+    const sheet = row._worksheet || row.sheet;
+    const headers = sheet ? sheet.headerValues : null;
+    
+    if (headers && row._rawData) {
+      // Map raw data to headers
+      row._rawData.forEach((value, index) => {
+        if (headers[index]) {
+          obj[headers[index]] = value;
+        }
+      });
+    } else {
+      // Fallback: try to get data directly from row properties
+      const knownHeaders = ['id', 'title', 'category', 'content', 'tags', 'uploadedBy', 'version', 'isActive', 'createdAt', 'updatedAt'];
+      knownHeaders.forEach(header => {
+        if (row[header] !== undefined) {
+          obj[header] = row[header];
+        }
+      });
+    }
+    
     return obj;
   }
 
