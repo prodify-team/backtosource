@@ -218,17 +218,22 @@ router.get('/search', async (req, res) => {
 });
 
 // Get knowledge base statistics
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
-    const stats = KnowledgeBase.getKnowledgeStats();
+    console.log('📊 GET /api/knowledge/stats - Stats request received');
+    const stats = await KnowledgeBase.getKnowledgeStats();
+    console.log('✅ Stats generated:', stats);
     
     res.json({
       success: true,
       stats
     });
   } catch (error) {
-    console.error('Stats error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('❌ Stats error:', error);
+    res.status(500).json({ 
+      error: 'Server error: ' + error.message,
+      success: false 
+    });
   }
 });
 

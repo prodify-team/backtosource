@@ -231,7 +231,44 @@ Violations result in immediate action as per company policy.`,
     return results;
   }
 
-  getKnowledgeStats() {
+  async getKnowledgeStats() {
+    try {
+      // First try Google Sheets database
+      const GoogleSheetsDB = require('../config/googleSheets');
+      const sheetsResults = await GoogleSheetsDB.getAllKnowledgeDocuments();
+      
+      if (sheetsResults && sheetsResults.length > 0) {
+        console.log(`📊 Generating stats from ${sheetsResults.length} Google Sheets documents`);
+        
+        const docs = sheetsResults.map(result => ({
+          id: result.id,
+          title: result.title,
+          category: result.category,
+          isActive: result.isActive === 'true',
+          updatedAt: result.updatedAt
+        }));
+        
+        const stats = {
+          total: docs.length,
+          active: docs.filter(d => d.isActive).length,
+          byCategory: {},
+          recentlyUpdated: docs
+            .filter(d => d.isActive)
+            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+            .slice(0, 5)
+        };
+
+        this.categories.forEach(category => {
+          stats.byCategory[category] = docs.filter(d => d.category === category && d.isActive).length;
+        });
+
+        return stats;
+      }
+    } catch (error) {
+      console.log('⚠️  Google Sheets stats failed, using local stats:', error.message);
+    }
+
+    // Fallback to local documents
     const docs = Array.from(this.documents.values());
     const stats = {
       total: docs.length,
