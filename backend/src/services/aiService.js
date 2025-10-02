@@ -179,6 +179,12 @@ Response Format:
         contextualPrompt += `\n\nUser is a chef. Focus on cooking techniques, recipes, kitchen management, and food safety from provided knowledge.`;
       } else if (userContext.role === 'waiter') {
         contextualPrompt += `\n\nUser is a waiter. Focus on customer service, menu knowledge, order taking from provided knowledge.`;
+      } else if (userContext.role === 'delivery-boy') {
+        contextualPrompt += `\n\nUser is a delivery person. Focus on delivery protocols, customer interaction, safety guidelines from provided knowledge.`;
+      } else if (userContext.role === 'supervisor') {
+        contextualPrompt += `\n\nUser is a supervisor. Focus on team coordination, quality control, training guidance from provided knowledge.`;
+      } else if (userContext.role === 'trainee') {
+        contextualPrompt += `\n\nUser is a trainee. Provide basic guidance, learning materials, step-by-step instructions from provided knowledge.`;
       } else if (userContext.role.includes('manager') || userContext.role === 'owner') {
         contextualPrompt += `\n\nUser is in management. Focus on operations, staff management from provided knowledge.`;
       }
