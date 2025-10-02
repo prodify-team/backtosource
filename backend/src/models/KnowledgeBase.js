@@ -129,6 +129,12 @@ Violations result in immediate action as per company policy.`,
     try {
       // First try Google Sheets database
       const GoogleSheetsDB = require('../config/googleSheets');
+      
+      // Ensure Google Sheets is initialized
+      if (!GoogleSheetsDB.isInitialized) {
+        await GoogleSheetsDB.initialize();
+      }
+      
       const sheetsResults = await GoogleSheetsDB.getAllKnowledgeDocuments(filters);
       
       if (sheetsResults && sheetsResults.length > 0) {
@@ -177,6 +183,12 @@ Violations result in immediate action as per company policy.`,
     try {
       // First try Google Sheets database
       const GoogleSheetsDB = require('../config/googleSheets');
+      
+      // Ensure Google Sheets is initialized
+      if (!GoogleSheetsDB.isInitialized) {
+        await GoogleSheetsDB.initialize();
+      }
+      
       const sheetsResults = await GoogleSheetsDB.searchKnowledgeBase(query, category);
       
       if (sheetsResults && sheetsResults.length > 0) {
@@ -235,6 +247,12 @@ Violations result in immediate action as per company policy.`,
     try {
       // First try Google Sheets database
       const GoogleSheetsDB = require('../config/googleSheets');
+      
+      // Ensure Google Sheets is initialized
+      if (!GoogleSheetsDB.isInitialized) {
+        await GoogleSheetsDB.initialize();
+      }
+      
       const sheetsResults = await GoogleSheetsDB.getAllKnowledgeDocuments();
       
       if (sheetsResults && sheetsResults.length > 0) {
