@@ -1,5 +1,5 @@
-// Vercel test endpoint
-export default function handler(req, res) {
+// Simple test endpoint
+module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   
   res.status(200).json({
@@ -9,6 +9,7 @@ export default function handler(req, res) {
       chat: 'POST /api/chat',
       test: 'GET /api/test'
     },
-    status: 'healthy'
+    status: 'healthy',
+    version: '2.0'
   });
-}
+};
