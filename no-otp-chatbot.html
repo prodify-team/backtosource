@@ -295,8 +295,13 @@ Kya janna chahte hain?`;
                 messages.removeChild(messages.lastChild);
             }
 
+            // Try API first, but always fall back to local responses
+            let apiWorked = false;
+            
             try {
-                const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000/api/chat' : '/api/chat';
+                const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000/api/chat-simple' : '/api/chat-simple';
+                console.log('Trying API:', apiUrl);
+                
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
@@ -310,18 +315,24 @@ Kya janna chahte hain?`;
                     })
                 });
                 
+                console.log('API Response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('API Success:', data);
                     addMessage(data.response, 'ai');
-                    return; // Success - exit here
+                    apiWorked = true;
                 } else {
-                    throw new Error(`API Error: ${response.status}`);
+                    console.log('API Error:', response.status, response.statusText);
                 }
                 
             } catch (error) {
-                console.error('Backend connection failed:', error);
-                
-                // Use enhanced local fallback responses
+                console.error('API Failed:', error.message);
+            }
+            
+            // If API didn't work, use local responses
+            if (!apiWorked) {
+                console.log('Using local fallback response');
                 const fallbackResponse = getEnhancedFallbackResponse(message, currentUser.role, currentUser.name);
                 addMessage(fallbackResponse, 'ai');
             }
