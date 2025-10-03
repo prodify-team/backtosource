@@ -289,8 +289,15 @@ Kya janna chahte hain?`;
             // Show typing indicator
             addMessage('Typing...', 'ai');
             
+            // Remove typing indicator first
+            const messages = document.getElementById('messages');
+            if (messages.lastChild && messages.lastChild.textContent === 'Typing...') {
+                messages.removeChild(messages.lastChild);
+            }
+
             try {
-                const response = await fetch('/api/chat', {
+                const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000/api/chat' : '/api/chat';
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -303,27 +310,19 @@ Kya janna chahte hain?`;
                     })
                 });
                 
-                // Remove typing indicator
-                const messages = document.getElementById('messages');
-                messages.removeChild(messages.lastChild);
-                
                 if (response.ok) {
                     const data = await response.json();
                     addMessage(data.response, 'ai');
+                    return; // Success - exit here
                 } else {
-                    throw new Error('API Error');
+                    throw new Error(`API Error: ${response.status}`);
                 }
                 
             } catch (error) {
-                console.error('Error:', error);
-                // Remove typing indicator
-                const messages = document.getElementById('messages');
-                if (messages.lastChild && messages.lastChild.textContent === 'Typing...') {
-                    messages.removeChild(messages.lastChild);
-                }
+                console.error('Backend connection failed:', error);
                 
-                // Fallback responses while backend is being fixed
-                const fallbackResponse = getFallbackResponse(message);
+                // Use enhanced local fallback responses
+                const fallbackResponse = getEnhancedFallbackResponse(message, currentUser.role, currentUser.name);
                 addMessage(fallbackResponse, 'ai');
             }
         }
