@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back to Source - Smart Training Bot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            min-height: 600px;
+        }
+        .login-container { padding: 40px 30px; text-align: center; }
+        .chat-container { display: flex; flex-direction: column; height: 600px; }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .messages { flex: 1; padding: 20px; overflow-y: auto; background: #f8f9fa; }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .message.user { background: #667eea; color: white; align-self: flex-end; margin-left: auto; }
+        .message.ai { background: #f1f3f4; color: #333; align-self: flex-start; }
+        .input-container { display: flex; gap: 10px; padding: 20px; background: white; border-top: 1px solid #eee; }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        .message-input { flex: 1; padding: 12px 16px; border: 2px solid #ddd; border-radius: 25px; font-size: 16px; outline: none; }
+        .send-btn { background: #667eea; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 18px; }
+        .hidden { display: none; }
+        h1 { color: #333; margin-bottom: 10px; font-size: 24px; }
+        h2 { color: #667eea; margin-bottom: 20px; font-size: 20px; }
+        p { color: #666; margin-bottom: 30px; }
+        .status { background: #e8f5e8; color: #2d5a2d; padding: 8px; border-radius: 5px; margin-bottom: 5px; font-size: 12px; }
+        .status.api-mode { background: #e8f4fd; color: #1e3a8a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loginContainer" class="login-container">
+            <h1>बैक टू सोर्स में आपका स्वागत है</h1>
+            <p>350+ Team Members | Multiple Locations</p>
+            
+            <div id="phoneForm">
+                <input type="tel" id="phoneNumber" class="form-input" placeholder="अपना फोन नंबर डालें (+91)" maxlength="13">
+                <button class="login-btn" onclick="startLogin()">Login करें</button>
+            </div>
+            
+            <div id="profileForm" class="hidden">
+                <h2>Profile Setup</h2>
+                <input type="text" id="userName" class="form-input" placeholder="अपना नाम लिखें">
+                <select id="userRole" class="form-select">
+                    <option value="">अपनी भूमिका चुनें</option>
+                    <option value="owner">Owner</option>
+                    <option value="manager">Manager</option>
+                    <option value="chef">Chef</option>
+                    <option value="waiter">Waiter</option>
+                    <option value="delivery-boy">Delivery Boy</option>
+                    <option value="supervisor">Supervisor</option>
+                    <option value="trainee">Trainee</option>
+                </select>
+                <select id="location" class="form-select">
+                    <option value="">Restaurant Location चुनें</option>
+                    <option value="delhi-cp">Delhi - Connaught Place</option>
+                    <option value="mumbai-bandra">Mumbai - Bandra</option>
+                    <option value="bangalore-koramangala">Bangalore - Koramangala</option>
+                    <option value="pune-fc-road">Pune - FC Road</option>
+                </select>
+                <button class="login-btn" onclick="completeSetup()">Start Chatting</button>
+            </div>
+        </div>
+
+        <div id="chatContainer" class="chat-container hidden">
+            <div class="chat-header">
+                <h3 id="userInfo">Back to Source Training Bot</h3>
+                <p>आपका AI Training & Task Assistant</p>
+                <div id="statusIndicator" class="status">🔄 Checking connection...</div>
+            </div>
+            
+            <div class="messages" id="messages"></div>
+            
+            <div class="input-container">
+                <input type="text" id="messageInput" class="message-input" placeholder="अपना message लिखें..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let tempPhone = '';
+        let apiMode = 'checking'; // 'api', 'local', 'checking'
+
+        function startLogin() {
+            const phone = document.getElementById('phoneNumber').value.trim();
+            if (!phone || phone.length < 10) {
+                alert('कृपया सही phone number डालें');
+                return;
+            }
+            tempPhone = phone;
+            document.getElementById('phoneForm').classList.add('hidden');
+            document.getElementById('profileForm').classList.remove('hidden');
+        }
+
+        function completeSetup() {
+            const name = document.getElementById('userName').value.trim();
+            const role = document.getElementById('userRole').value;
+            const location = document.getElementById('location').value;
+            
+            if (!name || !role || !location) {
+                alert('कृपया सभी fields भरें');
+                return;
+            }
+            
+            currentUser = { phone: tempPhone, name: name, role: role, location: location };
+            startChat();
+        }
+
+        async function startChat() {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('chatContainer').classList.remove('hidden');
+            document.getElementById('userInfo').textContent = `${currentUser.name} (${currentUser.role})`;
+            
+            // Test API connectivity
+            await testAPIConnection();
+            
+            const welcomeMsg = `Namaste ${currentUser.name} Ji! 🙏
+
+Main aapka Training & Task Bot hun. Kaise help kar sakta hun?
+
+📚 **Popular Commands:**
+• "dal makhani recipe" - Recipe seekhiye
+• "customer service tips" - Service excellence
+• "food safety rules" - Safety guidelines
+• "hygiene standards" - Cleanliness SOPs
+• "training modules" - Role-based learning
+
+Kya janna chahte hain?`;
+            
+            addMessage(welcomeMsg, 'ai');
+        }
+
+        async function testAPIConnection() {
+            const statusDiv = document.getElementById('statusIndicator');
+            
+            try {
+                // Try multiple API endpoints
+                const endpoints = [
+                    '/api/test',
+                    'https://jsonplaceholder.typicode.com/posts/1' // Fallback test
+                ];
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(endpoint);
+                        if (response.ok) {
+                            apiMode = 'api';
+                            statusDiv.textContent = '🌐 Connected to server';
+                            statusDiv.className = 'status api-mode';
+                            return;
+                        }
+                    } catch (e) {
+                        console.log(`Failed to connect to ${endpoint}`);
+                    }
+                }
+                
+                // If all fail, use local mode
+                apiMode = 'local';
+                statusDiv.textContent = '💾 Working offline';
+                statusDiv.className = 'status';
+                
+            } catch (error) {
+                apiMode = 'local';
+                statusDiv.textContent = '💾 Working offline';
+                statusDiv.className = 'status';
+            }
+        }
+
+        function addMessage(text, type) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            addMessage('Typing...', 'ai');
+            
+            // Get response based on mode
+            let response;
+            if (apiMode === 'api') {
+                response = await getAPIResponse(message);
+            } else {
+                response = getLocalResponse(message, currentUser.role, currentUser.name);
+            }
+            
+            // Remove typing indicator
+            const messages = document.getElementById('messages');
+            if (messages.lastChild && messages.lastChild.textContent === 'Typing...') {
+                messages.removeChild(messages.lastChild);
+            }
+            
+            addMessage(response, 'ai');
+        }
+
+        async function getAPIResponse(message) {
+            try {
+                // Use a simple GET request with query params to avoid CORS issues
+                const params = new URLSearchParams({
+                    message: message,
+                    role: currentUser.role,
+                    name: currentUser.name
+                });
+                
+                const response = await fetch(`/api/test?${params}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return `API Response: ${data.message}\n\nYour query: "${message}"\nRole: ${currentUser.role}`;
+                }
+            } catch (error) {
+                console.log('API failed, switching to local mode');
+                apiMode = 'local';
+                document.getElementById('statusIndicator').textContent = '💾 Switched to offline';
+            }
+            
+            return getLocalResponse(message, currentUser.role, currentUser.name);
+        }
+
+        function getLocalResponse(message, userRole, userName) {
+            const lowerMsg = message.toLowerCase();
+            
+            // Enhanced responses with more variety
+            if (lowerMsg.includes('customer service') || lowerMsg.includes('service tips')) {
+                return getCustomerServiceResponse(userRole, userName);
+            } else if (lowerMsg.includes('food safety') || lowerMsg.includes('safety rules')) {
+                return getFoodSafetyResponse(userRole, userName);
+            } else if (lowerMsg.includes('dal makhani') || lowerMsg.includes('recipe')) {
+                return getDalMakhaniResponse(userRole, userName);
+            } else if (lowerMsg.includes('hygiene') || lowerMsg.includes('cleanliness')) {
+                return getHygieneResponse(userRole, userName);
+            } else if (lowerMsg.includes('training') || lowerMsg.includes('modules')) {
+                return getTrainingResponse(userRole, userName);
+            } else {
+                return getDefaultResponse(userRole, userName);
+            }
+        }
+
+        function getCustomerServiceResponse(userRole, userName) {
+            if (userRole === 'waiter') {
+                return `Namaste ${userName}! 🍽️
+
+🌟 **Customer Service Excellence - Advanced Tips**
+
+• **First Impression Magic:**
+  - Greet within 30 seconds: "Namaste! Welcome to Back to Source"
+  - Maintain eye contact और genuine smile
+  - Ask: "Kya main aapko menu explain kar sakta hun?"
+
+• **Upselling Techniques:**
+  - Suggest appetizers: "Dal makhani ke saath butter naan perfect hai"
+  - Recommend drinks: "Fresh lime soda try kariye"
+  - Dessert closing: "Gulab jamun with ice cream?"
+
+• **Problem Resolution:**
+  - Listen completely before responding
+  - Apologize sincerely: "Main samajh sakta hun"
+  - Offer solutions immediately
+  - Follow up: "Sab theek hai na ab?"
+
+• **Memory Tricks:**
+  - Remember regular customers' preferences
+  - Note special occasions (birthday, anniversary)
+  - Use names when possible
+
+• **Daily Challenge:** Make 3 customers smile today with exceptional service!
+
+💡 **Pro Tip:** Happy customers tip 25% more और become regulars! 🎯`;
+            } else {
+                return `Namaste ${userName}! 🎓
+
+🌟 **Customer Service Fundamentals**
+
+• **Golden Rules:**
+  - Customer हमेशा सही होता है
+  - Patience और politeness maintain करें
+  - Problems को opportunities की तरह देखें
+
+• **Basic Etiquette:**
+  - "Please", "Thank you", "Sorry" use करें
+  - Interruptions avoid करें
+  - Body language positive रखें
+
+• **Assignment:** Senior staff से 5 customer service tips सीखें
+
+💡 **Daily Tip:** Great service reputation बनाती है! ✨`;
+            }
+        }
+
+        function getFoodSafetyResponse(userRole, userName) {
+            return `Namaste ${userName}! 🛡️
+
+🍽️ **Food Safety - Critical Guidelines**
+
+• **Temperature Danger Zone:**
+  - Danger: 5°C to 60°C (bacteria multiply fast)
+  - Hot food: Keep above 65°C
+  - Cold food: Keep below 4°C
+  - Check temperatures every 2 hours
+
+• **Storage Hierarchy (Top to Bottom):**
+  1. Ready-to-eat foods (top shelf)
+  2. Seafood और fish
+  3. Whole cuts of meat
+  4. Ground meat
+  5. Raw poultry (bottom)
+
+• **Cross-Contamination Prevention:**
+  - Color-coded cutting boards
+  - Separate utensils for raw/cooked
+  - Wash hands between tasks
+  - Clean surfaces with sanitizer
+
+• **FIFO Method:**
+  - First In, First Out rotation
+  - Label everything with dates
+  - Check expiry daily
+  - Dispose expired items immediately
+
+• **Personal Hygiene:**
+  - No jewelry except wedding ring
+  - Hair tied और covered
+  - Clean uniform daily
+  - Report illness immediately
+
+• **Emergency Protocol:**
+  - Food poisoning symptoms: Report immediately
+  - Contamination: Stop service, clean area
+  - Temperature abuse: Discard food
+
+💡 **Remember:** One mistake can close the restaurant! 🚨`;
+        }
+
+        function getDalMakhaniResponse(userRole, userName) {
+            if (userRole === 'chef') {
+                return `Namaste Chef ${userName}! 👨‍🍳
+
+🍛 **Dal Makhani - Master Recipe**
+
+• **Premium Ingredients:**
+  - काली दाल (whole black lentils): 1 cup
+  - राजमा (kidney beans): 1/4 cup  
+  - Fresh cream: 1/2 cup
+  - Butter: 4-6 tbsp
+  - Tomato puree: 1/2 cup
+
+• **Chef's Secret Method:**
+  - Soak overnight (minimum 8 hours)
+  - Pressure cook: 4-5 whistles with salt
+  - Slow cooking: 4-6 hours on low flame
+  - Stir every 30 minutes
+  - Add cream in last 15 minutes
+
+• **Flavor Enhancement:**
+  - Tempering: cumin, garlic, ginger
+  - Onion-tomato base: cook until oil separates  
+  - Spices: garam masala, red chili, coriander
+  - Finishing: butter और cream swirl
+
+• **Quality Check:**
+  - Consistency: Creamy but not too thick
+  - Color: Rich dark brown
+  - Taste: Balanced spicy-creamy
+  - Aroma: Smoky और rich
+
+• **Chef Assignment:** Perfect the timing - slow cooking cannot be rushed!
+
+🔥 **Master Tip:** Real dal makhani takes patience - shortcuts ruin authenticity!`;
+            } else {
+                return `Namaste ${userName}! 📚
+
+🍛 **Dal Makhani - Signature Dish Knowledge**
+
+• **What makes it special:**
+  - 6+ hours slow cooking process
+  - Black lentils और kidney beans
+  - Rich creamy texture
+  - Smoky flavor from long cooking
+
+• **Serving Details:**
+  - Served hot with butter on top
+  - Best with: Butter naan, jeera rice
+  - Portion: 150ml per serving
+  - Garnish: Cream swirl और fresh coriander
+
+• **Customer Questions:**
+  - "Is it spicy?" - Mild to medium spice
+  - "Vegan option?" - We can make without cream
+  - "How long to prepare?" - 6+ hours cooking time
+
+• **Assignment:** Taste the dish और identify 3 key flavors
+
+📖 **Learning Tip:** Understanding our signature dishes helps serve better!`;
+            }
+        }
+
+        function getHygieneResponse(userRole, userName) {
+            return `Namaste ${userName}! 🧼
+
+🧼 **Hygiene Standards - Non-Negotiable Rules**
+
+• **Hand Washing Protocol:**
+  - 20 seconds with soap और warm water
+  - Before starting work
+  - After touching raw food
+  - After using restroom
+  - After touching face/hair
+
+• **Personal Appearance:**
+  - Clean uniform daily
+  - Hair completely covered
+  - Nails short और clean
+  - No strong perfumes
+  - Closed-toe shoes only
+
+• **Work Area Cleanliness:**
+  - Sanitize surfaces every hour
+  - Clean spills immediately
+  - Organize tools properly
+  - Empty trash regularly
+  - Mop floors twice daily
+
+• **Food Handling:**
+  - Use gloves for ready-to-eat food
+  - Change gloves between tasks
+  - Don't touch food with bare hands
+  - Cover all food items
+  - Label और date everything
+
+• **Equipment Hygiene:**
+  - Clean और sanitize after each use
+  - Air dry completely
+  - Store in clean areas
+  - Check for damage daily
+
+💡 **Remember:** Cleanliness is our reputation! One hygiene mistake can close us down! 🏥`;
+        }
+
+        function getTrainingResponse(userRole, userName) {
+            return `Namaste ${userName}! 🎓
+
+📚 **Training Modules Available**
+
+• **Week 1-2: Foundation**
+  - Company culture और values
+  - Basic safety protocols
+  - Uniform और appearance standards
+  - Communication basics
+
+• **Week 3-4: Role-Specific Skills**
+  - Job responsibilities
+  - Equipment handling
+  - Standard procedures
+  - Quality standards
+
+• **Week 5-6: Advanced Techniques**
+  - Problem solving
+  - Customer interaction
+  - Team coordination
+  - Performance optimization
+
+• **Ongoing Development:**
+  - Monthly skill assessments
+  - New menu training
+  - Safety updates
+  - Leadership development
+
+• **Learning Resources:**
+  - Mentor assignments
+  - Video tutorials
+  - Hands-on practice
+  - Regular feedback sessions
+
+• **Next Steps:** Complete current module और schedule mentor meeting
+
+🚀 **Growth Tip:** Consistent learning leads to promotions और salary increases!`;
+        }
+
+        function getDefaultResponse(userRole, userName) {
+            return `Namaste ${userName}! 🙏
+
+Main aapki help kar sakta hun. Try these commands:
+
+📚 **Training & Learning:**
+• "customer service tips" - Service excellence
+• "food safety rules" - Safety protocols  
+• "hygiene standards" - Cleanliness guidelines
+• "training modules" - Learning paths
+
+🍽️ **Restaurant Knowledge:**
+• "dal makhani recipe" - Signature dish
+• "menu items" - Dish information
+• "cooking techniques" - Kitchen skills
+
+💡 **Quick Tips:**
+• Be specific in your questions
+• Ask about your role-specific needs
+• Practice makes perfect!
+
+Kya specific help chahiye? 🤔`;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>

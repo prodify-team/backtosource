@@ -4,6 +4,9 @@
     "api/chat.js": {
       "runtime": "@vercel/node"
     },
+    "api/chat-simple.js": {
+      "runtime": "@vercel/node"
+    },
     "api/test.js": {
       "runtime": "@vercel/node"
     }
