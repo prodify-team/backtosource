@@ -1,5 +1,5 @@
 // Simple chat API for Vercel
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // Enable CORS with proper headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       error: 'fallback'
     });
   }
-}
+};
 
 function getSimpleResponse(message, userRole, userName) {
   const lowerMessage = message.toLowerCase();
