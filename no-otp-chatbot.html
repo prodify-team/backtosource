@@ -327,6 +327,24 @@ Kya janna chahte hain?`;
             }
         }
 
+        function getEnhancedFallbackResponse(message, userRole, userName) {
+            const lowerMsg = message.toLowerCase();
+            
+            // Role-specific responses
+            if (lowerMsg.includes('dal makhani') || lowerMsg.includes('दाल मखनी')) {
+                if (userRole === 'chef') {
+                    return `Namaste Chef ${userName}! 👨‍🍳\n\n🍛 **Dal Makhani - Chef Level Recipe**\n\n• **Ingredients:** काली दाल 1 cup, राजमा 1/4 cup, मक्खन 4 tbsp, क्रीम 1/2 cup\n\n• **Chef Method:**\n  - 8 hours soaking zaroori hai\n  - Pressure cook 4-5 whistles with salt\n  - Slow cook 4-6 hours on low flame\n  - Tempering: cumin, onions, tomatoes\n  - Final touch: cream और butter\n\n• **Wrong Way:** Fast cooking या microwave mein banana\n• **Right Way:** Traditional slow cooking with patience\n\n• **Chef Assignment:** Practice temperature control aur timing perfect kariye\n\n• **Daily Tip:** Authentic taste ke liye dhimi aanch pe sabr rakhiye! 🔥`;
+                } else if (userRole === 'waiter') {
+                    return `Namaste ${userName}! 🍽️\n\n🍛 **Dal Makhani - Service Knowledge**\n\n• **Description:** "Our signature slow-cooked black lentils with butter and cream"\n• **Cooking Time:** 6+ hours slow cooking process\n• **Serving Style:** Hot, garnished with cream swirl\n• **Pairing:** Butter Naan, Jeera Rice, Tandoori Roti\n• **Allergens:** Contains dairy (butter, cream)\n\n• **Wrong Way:** "It's just dal" kehna guests ko\n• **Right Way:** Passionate description with cooking details\n\n• **Assignment:** 5 guests ko dal makhani ki story batayiye\n\n• **Daily Tip:** Food ki story batane se guests impressed hote hain! ✨`;
+                } else {
+                    return `Namaste ${userName}! 📚\n\n🍛 **Dal Makhani - Learning Basics**\n\n• **What is it:** Our signature dish - black lentils cooked very slowly\n• **Key Points:**\n  - Takes 6+ hours to cook properly\n  - Made with black lentils and kidney beans\n  - Very creamy and rich taste\n  - Served hot with bread or rice\n\n• **Why Special:** Long cooking time makes it very special and tasty\n\n• **Assignment:** 3 experienced staff se dal makhani के बारे में और details सीखिए\n\n• **Daily Tip:** हर दिन कुछ नया सीखने की कोशिश करिए! 📖`;
+                }
+            }
+            
+            // Fallback to basic response
+            return getFallbackResponse(message);
+        }
+
         function getFallbackResponse(message) {
             const lowerMsg = message.toLowerCase();
             
