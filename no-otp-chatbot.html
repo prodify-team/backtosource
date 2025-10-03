@@ -295,47 +295,216 @@ Kya janna chahte hain?`;
                 messages.removeChild(messages.lastChild);
             }
 
-            // Try API first, but always fall back to local responses
-            let apiWorked = false;
+            // Use enhanced local responses (API disabled for now)
+            console.log('Using enhanced local response system');
+            const response = getAdvancedResponse(message, currentUser.role, currentUser.name);
+            addMessage(response, 'ai');
+        }
+
+        function getAdvancedResponse(message, userRole, userName) {
+            const lowerMsg = message.toLowerCase();
             
-            try {
-                const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000/api/chat-simple' : '/api/chat-simple';
-                console.log('Trying API:', apiUrl);
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        userRole: currentUser.role,
-                        userName: currentUser.name,
-                        preferredLanguage: 'hinglish'
-                    })
-                });
-                
-                console.log('API Response status:', response.status);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('API Success:', data);
-                    addMessage(data.response, 'ai');
-                    apiWorked = true;
+            // Customer Service Excellence
+            if (lowerMsg.includes('customer service') || lowerMsg.includes('service tips')) {
+                if (userRole === 'waiter') {
+                    return `Namaste ${userName}! 🍽️
+
+🌟 **Customer Service Excellence - Advanced Guide**
+
+• **First Impression Protocol:**
+  - Greet within 30 seconds: "Namaste! Welcome to Back to Source"
+  - Eye contact और genuine smile maintain करें
+  - Ask: "Kya main aapko menu explain kar sakta hun?"
+
+• **Upselling Mastery:**
+  - Appetizer suggestion: "Dal makhani ke saath butter naan perfect combination hai"
+  - Beverage pairing: "Fresh lime soda या lassi try kariye"
+  - Dessert closing: "Gulab jamun with vanilla ice cream?"
+
+• **Problem Resolution Framework:**
+  - Listen completely before responding
+  - Apologize sincerely: "Main samajh sakta hun aapki problem"
+  - Offer immediate solutions
+  - Follow up: "Ab sab theek hai na?"
+
+• **Memory Techniques:**
+  - Regular customers के preferences yaad रखें
+  - Special occasions note करें (birthday, anniversary)
+  - Names use करें जब possible हो
+
+• **Daily Challenge:** Make 3 customers smile today with exceptional service!
+
+💡 **Pro Secret:** Happy customers tip 25% more और become regulars! 🎯`;
                 } else {
-                    console.log('API Error:', response.status, response.statusText);
+                    return `Namaste ${userName}! 🎓
+
+🌟 **Customer Service Fundamentals**
+
+• **Golden Rules:**
+  - Customer हमेशा सही होता है
+  - Patience और politeness maintain करें
+  - Problems को opportunities की तरह देखें
+
+• **Basic Etiquette:**
+  - "Please", "Thank you", "Sorry" का proper use
+  - Interruptions avoid करें
+  - Positive body language maintain करें
+
+• **Assignment:** Senior staff से 5 customer service tips सीखें
+
+💡 **Daily Tip:** Great service reputation बनाती है! ✨`;
                 }
-                
-            } catch (error) {
-                console.error('API Failed:', error.message);
             }
             
-            // If API didn't work, use local responses
-            if (!apiWorked) {
-                console.log('Using local fallback response');
-                const fallbackResponse = getEnhancedFallbackResponse(message, currentUser.role, currentUser.name);
-                addMessage(fallbackResponse, 'ai');
+            // Food Safety Protocols
+            else if (lowerMsg.includes('food safety') || lowerMsg.includes('safety rules') || lowerMsg.includes('खाना सुरक्षित')) {
+                return `Namaste ${userName}! 🛡️
+
+🍽️ **Food Safety - Critical Guidelines**
+
+• **Temperature Danger Zone:**
+  - Danger Zone: 5°C to 60°C (bacteria multiply rapidly)
+  - Hot food: Keep above 65°C always
+  - Cold food: Keep below 4°C
+  - Check temperatures every 2 hours
+
+• **Storage Hierarchy (Top to Bottom):**
+  1. Ready-to-eat foods (top shelf)
+  2. Seafood और fish
+  3. Whole cuts of meat
+  4. Ground meat
+  5. Raw poultry (bottom shelf)
+
+• **Cross-Contamination Prevention:**
+  - Color-coded cutting boards use करें
+  - Separate utensils for raw/cooked
+  - Hands wash between different tasks
+  - Surfaces sanitize regularly
+
+• **FIFO Method (First In, First Out):**
+  - Label everything with dates
+  - Older stock पहले use करें
+  - Daily expiry check करें
+  - Expired items immediately dispose करें
+
+• **Personal Hygiene Musts:**
+  - No jewelry except wedding ring
+  - Hair completely tied और covered
+  - Clean uniform daily
+  - Illness report immediately
+
+💡 **Critical:** One food safety mistake can shut down the restaurant! 🚨`;
             }
+            
+            // Enhanced Dal Makhani
+            else if (lowerMsg.includes('dal makhani') || lowerMsg.includes('दाल मखनी') || lowerMsg.includes('recipe')) {
+                if (userRole === 'chef') {
+                    return `Namaste Chef ${userName}! 👨‍🍳
+
+🍛 **Dal Makhani - Master Chef Recipe**
+
+• **Premium Ingredients:**
+  - काली दाल (whole black lentils): 1 cup
+  - राजमा (kidney beans): 1/4 cup  
+  - Fresh cream: 1/2 cup
+  - White butter: 4-6 tbsp
+  - Tomato puree: 1/2 cup
+
+• **Chef's Secret Method:**
+  - Overnight soaking (minimum 8 hours)
+  - Pressure cook: 4-5 whistles with salt
+  - Slow cooking: 4-6 hours on low flame
+  - Stir every 30 minutes to prevent sticking
+  - Add cream only in last 15 minutes
+
+• **Flavor Enhancement Technique:**
+  - Tempering: cumin seeds, garlic, ginger paste
+  - Onion-tomato base: cook until oil separates  
+  - Spice blend: garam masala, red chili, coriander powder
+  - Finishing touch: butter swirl और cream garnish
+
+• **Quality Control Checklist:**
+  - Consistency: Creamy but not too thick
+  - Color: Rich dark brown
+  - Taste: Perfect spicy-creamy balance
+  - Aroma: Smoky और rich
+
+• **Chef Assignment:** Master the timing - authentic dal makhani cannot be rushed!
+
+🔥 **Master Secret:** Real dal makhani takes patience - shortcuts destroy authenticity!`;
+                } else if (userRole === 'waiter') {
+                    return `Namaste ${userName}! 🍽️
+
+🍛 **Dal Makhani - Service Excellence Guide**
+
+• **Dish Description for Guests:**
+  "Our signature slow-cooked black lentils with butter and cream"
+  "6+ hours of traditional cooking process"
+  "Rich, creamy texture with smoky flavor"
+
+• **Serving Standards:**
+  - Serve piping hot with butter on top
+  - Garnish: Fresh cream swirl और coriander
+  - Portion size: 150ml per serving
+  - Temperature check before serving
+
+• **Perfect Pairings:**
+  - Bread: Butter naan, garlic naan, tandoori roti
+  - Rice: Jeera rice, saffron pulao
+  - Sides: Pickled onions, mint chutney
+
+• **Guest Questions & Answers:**
+  - "Is it spicy?" → "Mild to medium spice level"
+  - "Vegan option?" → "We can prepare without dairy"
+  - "Cooking time?" → "6+ hours slow cooking process"
+  - "Allergens?" → "Contains dairy (butter, cream)"
+
+• **Upselling Opportunity:**
+  "Would you like to try our butter naan? It's perfect with dal makhani"
+
+• **Assignment:** Taste the dish और identify 3 key flavor notes
+
+📖 **Service Tip:** Passionate food description increases order value by 30%! ✨`;
+                } else {
+                    return `Namaste ${userName}! 📚
+
+🍛 **Dal Makhani - Learning Guide**
+
+• **What Makes It Special:**
+  - 6+ hours slow cooking process
+  - Black lentils और kidney beans combination
+  - Rich creamy texture from butter और cream
+  - Smoky flavor from traditional long cooking
+
+• **Basic Knowledge:**
+  - Main ingredients: Black lentils, kidney beans
+  - Cooking method: Slow cooking on low flame
+  - Texture: Thick, creamy, rich
+  - Taste profile: Mildly spicy, buttery, smoky
+
+• **Serving Information:**
+  - Served hot with butter garnish
+  - Best with: Naan, roti, rice
+  - Popular combination: Dal makhani + butter naan
+  - Portion: Standard serving bowl
+
+• **Why Customers Love It:**
+  - Comfort food feeling
+  - Rich, satisfying taste
+  - Traditional cooking method
+  - Perfect for sharing
+
+• **Learning Assignment:** 
+  - Taste the dish carefully
+  - Ask 3 experienced staff about cooking process
+  - Learn proper serving technique
+
+📖 **Growth Tip:** Understanding signature dishes helps you serve customers better! 🌟`;
+                }
+            }
+            
+            // Return to basic enhanced response for other queries
+            return getEnhancedFallbackResponse(message, userRole, userName);
         }
 
         function getEnhancedFallbackResponse(message, userRole, userName) {
