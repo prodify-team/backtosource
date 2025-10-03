@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple API Test</title>
+</head>
+<body>
+    <h1>Simple API Test</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            
+            // Show exactly what URL we're using
+            const hostname = window.location.hostname;
+            const apiUrl = hostname === 'localhost' ? 'http://localhost:3000/api/chat' : '/api/chat';
+            
+            resultDiv.innerHTML = `
+                <p><strong>Hostname:</strong> ${hostname}</p>
+                <p><strong>API URL:</strong> ${apiUrl}</p>
+                <p><strong>Full URL:</strong> ${window.location.origin}${apiUrl}</p>
+                <p>Testing...</p>
+            `;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: 'test message',
+                        userRole: 'chef',
+                        userName: 'TestUser'
+                    })
+                });
+                
+                resultDiv.innerHTML += `
+                    <p><strong>Response Status:</strong> ${response.status}</p>
+                    <p><strong>Response OK:</strong> ${response.ok}</p>
+                `;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML += `
+                        <h3>✅ Success!</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML += `
+                        <h3>❌ Error</h3>
+                        <p>${errorText}</p>
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML += `
+                    <h3>🚨 Network Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
