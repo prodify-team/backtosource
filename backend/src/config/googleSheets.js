@@ -205,6 +205,42 @@ class GoogleSheetsDB {
     }
   }
 
+  // Enhanced search term expansion for better matching
+  expandSearchTerms(searchTerm) {
+    const keywords = [searchTerm];
+    
+    // Add variations and translations
+    const termMappings = {
+      'dal': ['दाल', 'lentil', 'makhani', 'dal makhani'],
+      'दाल': ['dal', 'lentil', 'makhani'],
+      'makhani': ['मखनी', 'dal', 'butter', 'creamy'],
+      'मखनी': ['makhani', 'dal', 'butter'],
+      'recipe': ['रेसिपी', 'विधि', 'बनाना', 'कैसे'],
+      'रेसिपी': ['recipe', 'method', 'cooking'],
+      'hygiene': ['सफाई', 'स्वच्छता', 'cleanliness', 'kitchen'],
+      'सफाई': ['hygiene', 'cleanliness', 'kitchen'],
+      'रसोई': ['kitchen', 'cooking', 'chef'],
+      'kitchen': ['रसोई', 'cooking', 'chef', 'hygiene'],
+      'training': ['प्रशिक्षण', 'सिखाना', 'guide'],
+      'प्रशिक्षण': ['training', 'learning', 'guide'],
+      'waiter': ['वेटर', 'service', 'customer'],
+      'वेटर': ['waiter', 'service', 'customer']
+    };
+    
+    // Add mapped terms
+    Object.keys(termMappings).forEach(key => {
+      if (searchTerm.includes(key)) {
+        keywords.push(...termMappings[key]);
+      }
+    });
+    
+    // Add partial matches for compound words
+    const words = searchTerm.split(/[\s\-_]+/);
+    keywords.push(...words);
+    
+    return [...new Set(keywords)]; // Remove duplicates
+  }
+
   // Knowledge Base operations
   async createKnowledgeDocument(docData) {
     if (!this.isInitialized) return this.createKnowledgeDocumentLocal(docData);
@@ -255,9 +291,12 @@ class GoogleSheetsDB {
         const rowCategory = row._rawData[categoryIndex] || '';
         const isActive = row._rawData[isActiveIndex] === 'TRUE';
         
-        const titleMatch = title.toLowerCase().includes(searchTerm);
-        const contentMatch = content.toLowerCase().includes(searchTerm);
-        const tagsMatch = tags.toLowerCase().includes(searchTerm);
+        // Enhanced search with keyword mapping
+        const searchKeywords = this.expandSearchTerms(searchTerm);
+        
+        const titleMatch = searchKeywords.some(keyword => title.toLowerCase().includes(keyword));
+        const contentMatch = searchKeywords.some(keyword => content.toLowerCase().includes(keyword));
+        const tagsMatch = searchKeywords.some(keyword => tags.toLowerCase().includes(keyword));
         const categoryMatch = !category || rowCategory === category;
         
         return (titleMatch || contentMatch || tagsMatch) && categoryMatch && isActive;

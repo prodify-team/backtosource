@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Back to Source - AI Assistant</title>
+    <title>Back to Source - AI Assistant (No OTP)</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -212,14 +212,10 @@
             
             <div id="phoneLoginForm">
                 <input type="tel" id="phoneNumber" class="form-input" placeholder="अपना फोन नंबर डालें (+91)" maxlength="13">
-                <button class="login-btn" onclick="sendOTP()" id="sendOTPBtn">OTP भेजें</button>
+                <button class="login-btn" onclick="directLogin()" id="loginBtn">Login करें</button>
             </div>
             
-            <div id="otpVerifyForm" class="hidden">
-                <input type="text" id="otpCode" class="form-input" placeholder="OTP कोड डालें" maxlength="6">
-                <button class="login-btn" onclick="verifyOTP()">Verify करें</button>
-                <p><small>OTP नहीं मिला? <a href="#" onclick="sendOTP()">दोबारा भेजें</a></small></p>
-            </div>
+            <!-- OTP form completely removed -->
             
             <div id="profileSetupForm" class="hidden">
                 <h2>Profile Setup</h2>
@@ -353,7 +349,7 @@
             });
         }
         
-        async function sendOTP() {
+        async function directLogin() {
             const phoneInput = document.getElementById('phoneNumber');
             let phone = phoneInput.value.trim();
             
@@ -370,50 +366,17 @@
             }
             
             tempPhoneNumber = phone;
+            console.log('Direct login mode - phone:', phone);
             
-            try {
-                // Check if user exists
-                const response = await fetch('/api/auth/check-user', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone })
-                });
-                
-                const data = await response.json();
-                isNewUser = !data.exists;
-                
-                // Simulate OTP sending (in production, integrate with SMS service)
-                console.log('OTP sent to:', phone, '- Demo OTP: 123456');
-                
-                document.getElementById('phoneLoginForm').classList.add('hidden');
-                document.getElementById('otpVerifyForm').classList.remove('hidden');
-                
-                // Show demo OTP for testing
-                alert(`Demo OTP भेजा गया: 123456\n(Production में real SMS होगा)`);
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('कुछ गलती हुई। कृपया बाद में कोशिश करें।');
-            }
+            // Always treat as new user for demo (no backend check)
+            isNewUser = true;
+            
+            // Show profile setup directly
+            document.getElementById('phoneLoginForm').classList.add('hidden');
+            document.getElementById('profileSetupForm').classList.remove('hidden');
         }
         
-        async function verifyOTP() {
-            const otpCode = document.getElementById('otpCode').value.trim();
-            
-            if (otpCode !== '123456') { // Demo OTP
-                alert('गलत OTP। कृपया दोबारा कोशिश करें।');
-                return;
-            }
-            
-            if (isNewUser) {
-                // New user - show profile setup
-                document.getElementById('otpVerifyForm').classList.add('hidden');
-                document.getElementById('profileSetupForm').classList.remove('hidden');
-            } else {
-                // Existing user - login directly
-                await loginExistingUser();
-            }
-        }
+        // OTP function removed - using direct login now
         
         async function loginExistingUser() {
             try {
@@ -444,6 +407,19 @@
                 return;
             }
             
+            // Create user object directly for demo
+            currentUser = {
+                phone: tempPhoneNumber,
+                name: name,
+                role: role,
+                location: location,
+                preferredLanguage: 'hinglish'
+            };
+            
+            console.log('User registered:', currentUser);
+            startChatSession();
+            
+            /* Backend registration - temporarily disabled
             try {
                 const response = await fetch('/api/auth/register', {
                     method: 'POST',
@@ -465,6 +441,7 @@
                 console.error('Registration error:', error);
                 alert('Registration में समस्या। कृपया बाद में कोशिश करें।');
             }
+            */
         }
         
         function startChatSession() {

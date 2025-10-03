@@ -5,24 +5,34 @@ const aiService = require('../services/aiService');
 // Chat with AI assistant
 router.post('/message', async (req, res) => {
   try {
-    const { message, userId, userRole, preferredLanguage } = req.body;
+    const { message, userId, userRole, userName, preferredLanguage } = req.body;
+    
+    console.log(`📨 Received message: "${message}" from ${userName || 'User'} (${userRole || 'unknown role'})`);
     
     // For demo mode, use provided user context or defaults
     const userContext = {
-      role: userRole || 'chef',
+      role: userRole || 'trainee',
+      name: userName || 'Ji',
       restaurantName: 'Back to Source',
-      preferredLanguage: preferredLanguage || 'hindi'
+      preferredLanguage: preferredLanguage || 'hinglish'
     };
 
     const aiResponse = await aiService.processMessage(message, userContext);
     
+    console.log(`✅ Generated response (${aiResponse.length} chars)`);
+    
     res.json({
       response: aiResponse,
-      timestamp: new Date()
+      timestamp: new Date(),
+      userRole: userRole,
+      userName: userName
     });
   } catch (error) {
     console.error('Chat error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ 
+      error: 'Server error',
+      message: 'Unable to process your request. Please try again.'
+    });
   }
 });
 

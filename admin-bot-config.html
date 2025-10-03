@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Configuration - Back to Source Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .config-section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-content {
+            padding: 20px;
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .preview-box {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .role-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .role-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .role-card h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-active {
+            background: #28a745;
+        }
+
+        .status-inactive {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Bot Configuration Panel</h1>
+            <p>Customize your AI assistant's behavior and instructions</p>
+        </div>
+
+        <div class="content">
+            <!-- Bot Identity Section -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection('identity')">
+                    <span><span class="status-indicator status-active"></span>Bot Identity & Personality</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content active" id="identity">
+                    <div class="form-group">
+                        <label>Bot Name</label>
+                        <input type="text" id="botName" value="Back to Source AI Assistant" placeholder="Enter bot name">
+                    </div>
+                    <div class="form-group">
+                        <label>Bot Role</label>
+                        <input type="text" id="botRole" value="Restaurant Staff Helper" placeholder="Enter bot role">
+                    </div>
+                    <div class="form-group">
+                        <label>Personality Description</label>
+                        <textarea id="personality" placeholder="Describe the bot's personality">Professional, helpful, knowledgeable about Indian cuisine</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Default Language Preference</label>
+                        <select id="defaultLanguage">
+                            <option value="auto">Auto-detect</option>
+                            <option value="hindi">Hindi</option>
+                            <option value="english">English</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Core Instructions Section -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection('instructions')">
+                    <span><span class="status-indicator status-active"></span>Core Instructions</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content" id="instructions">
+                    <div class="form-group">
+                        <label>Primary System Instruction</label>
+                        <textarea id="primaryInstruction" placeholder="Main instruction for the bot">You are an AI assistant for "Back to Source" restaurant chain specializing in authentic Indian slow cooking.</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Knowledge Base Policy</label>
+                        <select id="knowledgePolicy">
+                            <option value="strict">Strict - Only use knowledge base</option>
+                            <option value="flexible">Flexible - Use knowledge base + general knowledge</option>
+                            <option value="creative">Creative - Allow creative responses</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Core Rules (one per line)</label>
+                        <textarea id="coreRules" placeholder="Enter core rules, one per line">Use ONLY information from the provided knowledge base
+If information is not available, clearly state this
+Never use general knowledge outside the knowledge base
+Always maintain professional and helpful tone</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role-Specific Instructions -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection('roles')">
+                    <span><span class="status-indicator status-active"></span>Role-Specific Instructions</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content" id="roles">
+                    <div class="role-config">
+                        <div class="role-card">
+                            <h4>👨‍🍳 Chef</h4>
+                            <div class="form-group">
+                                <label>Focus Areas</label>
+                                <input type="text" id="chef-focus" value="cooking techniques, recipes, kitchen management, food safety">
+                            </div>
+                            <div class="form-group">
+                                <label>Tone</label>
+                                <input type="text" id="chef-tone" value="Expert culinary guidance">
+                            </div>
+                        </div>
+
+                        <div class="role-card">
+                            <h4>🍽️ Waiter</h4>
+                            <div class="form-group">
+                                <label>Focus Areas</label>
+                                <input type="text" id="waiter-focus" value="customer service, menu knowledge, order taking">
+                            </div>
+                            <div class="form-group">
+                                <label>Tone</label>
+                                <input type="text" id="waiter-tone" value="Customer service oriented">
+                            </div>
+                        </div>
+
+                        <div class="role-card">
+                            <h4>🚚 Delivery</h4>
+                            <div class="form-group">
+                                <label>Focus Areas</label>
+                                <input type="text" id="delivery-focus" value="delivery protocols, customer interaction, safety">
+                            </div>
+                            <div class="form-group">
+                                <label>Tone</label>
+                                <input type="text" id="delivery-tone" value="Safety and efficiency focused">
+                            </div>
+                        </div>
+
+                        <div class="role-card">
+                            <h4>👥 Supervisor</h4>
+                            <div class="form-group">
+                                <label>Focus Areas</label>
+                                <input type="text" id="supervisor-focus" value="team coordination, quality control, training">
+                            </div>
+                            <div class="form-group">
+                                <label>Tone</label>
+                                <input type="text" id="supervisor-tone" value="Leadership focused">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Response Formatting -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection('formatting')">
+                    <span><span class="status-indicator status-active"></span>Response Formatting</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content" id="formatting">
+                    <div class="form-group">
+                        <label>Use Emojis</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="useEmojis" checked>
+                                <label for="useEmojis">Enable emojis in responses</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Maximum Response Length (words)</label>
+                        <input type="number" id="maxLength" value="500" min="100" max="1000">
+                    </div>
+                    <div class="form-group">
+                        <label>Formality Level</label>
+                        <select id="formalityLevel">
+                            <option value="casual">Casual</option>
+                            <option value="professional" selected>Professional</option>
+                            <option value="formal">Formal</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Response Structure</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="useBullets" checked>
+                                <label for="useBullets">Use bullet points</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="useHeadings" checked>
+                                <label for="useHeadings">Use headings</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Instructions -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection('custom')">
+                    <span><span class="status-indicator status-inactive"></span>Custom Instructions</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content" id="custom">
+                    <div class="form-group">
+                        <label>Special Instructions (one per line)</label>
+                        <textarea id="specialInstructions" placeholder="Add any special instructions for the bot">Always emphasize food safety when discussing kitchen procedures
+Promote team collaboration and learning
+Encourage following SOPs and company policies</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Prohibited Topics/Responses</label>
+                        <textarea id="prohibitedTopics" placeholder="Topics the bot should not discuss">Personal information of staff
+Financial details
+Confidential recipes</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="config-section">
+                <div class="section-header" onclick="toggleSection('preview')">
+                    <span><span class="status-indicator status-active"></span>Configuration Preview</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content" id="preview">
+                    <button class="btn" onclick="generatePreview()">Generate Preview</button>
+                    <div class="preview-box" id="configPreview">
+                        Click "Generate Preview" to see the current configuration...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn btn-success" onclick="saveConfiguration()">💾 Save Configuration</button>
+                <button class="btn btn-secondary" onclick="testBot()">🧪 Test Bot</button>
+                <button class="btn btn-secondary" onclick="resetToDefaults()">🔄 Reset to Defaults</button>
+                <button class="btn btn-danger" onclick="exportConfiguration()">📤 Export Config</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            const icon = content.previousElementSibling.querySelector('.toggle-icon');
+            
+            content.classList.toggle('active');
+            icon.classList.toggle('rotated');
+        }
+
+        function generatePreview() {
+            const config = {
+                identity: {
+                    name: document.getElementById('botName').value,
+                    role: document.getElementById('botRole').value,
+                    personality: document.getElementById('personality').value,
+                    language_preference: document.getElementById('defaultLanguage').value
+                },
+                systemInstructions: {
+                    primary: document.getElementById('primaryInstruction').value,
+                    knowledge_policy: document.getElementById('knowledgePolicy').value,
+                    core_rules: document.getElementById('coreRules').value.split('\n').filter(rule => rule.trim())
+                },
+                formatting: {
+                    use_emojis: document.getElementById('useEmojis').checked,
+                    max_response_length: parseInt(document.getElementById('maxLength').value),
+                    formality_level: document.getElementById('formalityLevel').value
+                }
+            };
+
+            document.getElementById('configPreview').textContent = JSON.stringify(config, null, 2);
+        }
+
+        async function saveConfiguration() {
+            const config = generateConfigObject();
+            
+            try {
+                const response = await fetch('/api/bot-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                if (response.ok) {
+                    alert('✅ Configuration saved successfully!');
+                } else {
+                    alert('❌ Failed to save configuration');
+                }
+            } catch (error) {
+                console.error('Error saving configuration:', error);
+                alert('❌ Error saving configuration');
+            }
+        }
+
+        function testBot() {
+            const testMessage = prompt('Enter a test message for the bot:');
+            if (testMessage) {
+                // Open test interface or send test message
+                window.open(`/simple-chatbot.html?test=${encodeURIComponent(testMessage)}`, '_blank');
+            }
+        }
+
+        function resetToDefaults() {
+            if (confirm('Are you sure you want to reset all settings to defaults?')) {
+                location.reload();
+            }
+        }
+
+        function exportConfiguration() {
+            const config = generateConfigObject();
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'bot-configuration.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function generateConfigObject() {
+            return {
+                identity: {
+                    name: document.getElementById('botName').value,
+                    role: document.getElementById('botRole').value,
+                    personality: document.getElementById('personality').value,
+                    language_preference: document.getElementById('defaultLanguage').value
+                },
+                systemInstructions: {
+                    primary: document.getElementById('primaryInstruction').value,
+                    knowledge_policy: document.getElementById('knowledgePolicy').value,
+                    core_rules: document.getElementById('coreRules').value.split('\n').filter(rule => rule.trim())
+                },
+                roleInstructions: {
+                    chef: {
+                        focus: document.getElementById('chef-focus').value.split(',').map(s => s.trim()),
+                        tone: document.getElementById('chef-tone').value
+                    },
+                    waiter: {
+                        focus: document.getElementById('waiter-focus').value.split(',').map(s => s.trim()),
+                        tone: document.getElementById('waiter-tone').value
+                    },
+                    "delivery-boy": {
+                        focus: document.getElementById('delivery-focus').value.split(',').map(s => s.trim()),
+                        tone: document.getElementById('delivery-tone').value
+                    },
+                    supervisor: {
+                        focus: document.getElementById('supervisor-focus').value.split(',').map(s => s.trim()),
+                        tone: document.getElementById('supervisor-tone').value
+                    }
+                },
+                formatting: {
+                    use_emojis: document.getElementById('useEmojis').checked,
+                    max_response_length: parseInt(document.getElementById('maxLength').value),
+                    formality_level: document.getElementById('formalityLevel').value,
+                    structure: {
+                        use_bullet_points: document.getElementById('useBullets').checked,
+                        use_headings: document.getElementById('useHeadings').checked
+                    }
+                },
+                behaviorModifiers: {
+                    special_instructions: document.getElementById('specialInstructions').value.split('\n').filter(s => s.trim()),
+                    prohibited_topics: document.getElementById('prohibitedTopics').value.split('\n').filter(s => s.trim())
+                }
+            };
+        }
+
+        // Load current configuration on page load
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch('/api/bot-config');
+                if (response.ok) {
+                    const config = await response.json();
+                    loadConfiguration(config);
+                }
+            } catch (error) {
+                console.log('Using default configuration');
+            }
+        });
+
+        function loadConfiguration(config) {
+            if (config.identity) {
+                document.getElementById('botName').value = config.identity.name || '';
+                document.getElementById('botRole').value = config.identity.role || '';
+                document.getElementById('personality').value = config.identity.personality || '';
+                document.getElementById('defaultLanguage').value = config.identity.language_preference || 'auto';
+            }
+            
+            if (config.systemInstructions) {
+                document.getElementById('primaryInstruction').value = config.systemInstructions.primary || '';
+                document.getElementById('knowledgePolicy').value = config.systemInstructions.knowledge_policy || 'strict';
+                document.getElementById('coreRules').value = (config.systemInstructions.core_rules || []).join('\n');
+            }
+            
+            // Load other sections...
+        }
+    </script>
+</body>
+</html>

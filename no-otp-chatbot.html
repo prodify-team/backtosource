@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back to Source - Direct Login Bot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            min-height: 600px;
+        }
+
+        .login-container {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .message.ai {
+            background: #f1f3f4;
+            color: #333;
+            align-self: flex-start;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .send-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Container -->
+        <div id="loginContainer" class="login-container">
+            <h1>बैक टू सोर्स में आपका स्वागत है</h1>
+            <p>350+ Team Members | Multiple Locations</p>
+            
+            <div id="phoneForm">
+                <input type="tel" id="phoneNumber" class="form-input" placeholder="अपना फोन नंबर डालें (+91)" maxlength="13">
+                <button class="login-btn" onclick="startLogin()">Login करें</button>
+            </div>
+            
+            <div id="profileForm" class="hidden">
+                <h2>Profile Setup</h2>
+                <input type="text" id="userName" class="form-input" placeholder="अपना नाम लिखें">
+                <select id="userRole" class="form-select">
+                    <option value="">अपनी भूमिका चुनें</option>
+                    <option value="owner">Owner</option>
+                    <option value="manager">Manager</option>
+                    <option value="chef">Chef</option>
+                    <option value="waiter">Waiter</option>
+                    <option value="delivery-boy">Delivery Boy</option>
+                    <option value="supervisor">Supervisor</option>
+                    <option value="trainee">Trainee</option>
+                </select>
+                <select id="location" class="form-select">
+                    <option value="">Restaurant Location चुनें</option>
+                    <option value="delhi-cp">Delhi - Connaught Place</option>
+                    <option value="mumbai-bandra">Mumbai - Bandra</option>
+                    <option value="bangalore-koramangala">Bangalore - Koramangala</option>
+                    <option value="pune-fc-road">Pune - FC Road</option>
+                </select>
+                <button class="login-btn" onclick="completeSetup()">Start Chatting</button>
+            </div>
+        </div>
+
+        <!-- Chat Container -->
+        <div id="chatContainer" class="chat-container hidden">
+            <div class="chat-header">
+                <h3 id="userInfo">Back to Source Training Bot</h3>
+                <p>आपका AI Training & Task Assistant</p>
+            </div>
+            
+            <div class="messages" id="messages"></div>
+            
+            <div class="input-container">
+                <input type="text" id="messageInput" class="message-input" placeholder="अपना message लिखें..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let tempPhone = '';
+
+        function startLogin() {
+            const phone = document.getElementById('phoneNumber').value.trim();
+            
+            if (!phone || phone.length < 10) {
+                alert('कृपया सही phone number डालें');
+                return;
+            }
+            
+            tempPhone = phone;
+            
+            // Show profile form directly (no OTP)
+            document.getElementById('phoneForm').classList.add('hidden');
+            document.getElementById('profileForm').classList.remove('hidden');
+        }
+
+        function completeSetup() {
+            const name = document.getElementById('userName').value.trim();
+            const role = document.getElementById('userRole').value;
+            const location = document.getElementById('location').value;
+            
+            if (!name || !role || !location) {
+                alert('कृपया सभी fields भरें');
+                return;
+            }
+            
+            currentUser = {
+                phone: tempPhone,
+                name: name,
+                role: role,
+                location: location
+            };
+            
+            startChat();
+        }
+
+        function startChat() {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('chatContainer').classList.remove('hidden');
+            
+            document.getElementById('userInfo').textContent = `${currentUser.name} (${currentUser.role})`;
+            
+            // Welcome message
+            const welcomeMsg = `Namaste ${currentUser.name} Ji! 🙏
+
+Main aapka Training & Task Bot hun. Kaise help kar sakta hun?
+
+📚 Training Commands:
+• "dal makhani recipe" - Recipe seekhiye
+• "hygiene rules" - Safety guidelines
+• "training chahiye" - Role-based training
+
+📋 Task Commands:  
+• "task add karo" - Naya task
+• "mera task dikhao" - Current tasks
+
+Kya janna chahte hain?`;
+            
+            addMessage(welcomeMsg, 'ai');
+        }
+
+        function addMessage(text, type) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            addMessage('Typing...', 'ai');
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        userRole: currentUser.role,
+                        userName: currentUser.name,
+                        preferredLanguage: 'hinglish'
+                    })
+                });
+                
+                // Remove typing indicator
+                const messages = document.getElementById('messages');
+                messages.removeChild(messages.lastChild);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage(data.response, 'ai');
+                } else {
+                    throw new Error('API Error');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                // Remove typing indicator
+                const messages = document.getElementById('messages');
+                if (messages.lastChild && messages.lastChild.textContent === 'Typing...') {
+                    messages.removeChild(messages.lastChild);
+                }
+                
+                // Fallback responses while backend is being fixed
+                const fallbackResponse = getFallbackResponse(message);
+                addMessage(fallbackResponse, 'ai');
+            }
+        }
+
+        function getFallbackResponse(message) {
+            const lowerMsg = message.toLowerCase();
+            
+            // Dal Makhani Recipe
+            if (lowerMsg.includes('dal makhani') || lowerMsg.includes('दाल मखनी')) {
+                return `🍛 **Dal Makhani Recipe - Back to Source Special**
+
+• **Ingredients:** काली दाल 1 cup, राजमा 1/4 cup, मक्खन 4 tbsp, क्रीम 1/2 cup
+
+• **Method:**
+  - Soak 8 hours
+  - Pressure cook 4-5 whistles  
+  - Slow cook 4-6 hours
+  - Add cream और butter
+
+• **Wrong Way:** Fast cooking पर बनाना
+• **Right Way:** धीमी आंच पर patience से पकाना
+
+• **Assignment:** Practice this recipe aur 2 key points yaad rakhiye
+
+• **Daily Tip:** Hamesha slow cooking करें authentic taste के लिए! 🔥`;
+            }
+            
+            // Hygiene Rules
+            if (lowerMsg.includes('hygiene') || lowerMsg.includes('सफाई') || lowerMsg.includes('cleanliness')) {
+                return `🧼 **Kitchen Hygiene Rules - Daily SOP**
+
+• **Hand Washing:** 20 seconds soap से धोना
+• **Clean Uniform:** हमेशा साफ apron और hair net
+• **No Jewelry:** Wedding ring को छोड़कर कुछ नहीं
+• **Temperature Check:** Cold 4°C, Hot 65°C+
+• **Food Separation:** Raw और cooked अलग रखें
+• **FIFO Rule:** First In, First Out follow करें
+
+• **Wrong Way:** Dirty hands से food handle करना
+• **Right Way:** हर step में cleanliness maintain करना
+
+• **Assignment:** Today 5 times proper handwashing practice करें
+
+• **Daily Tip:** Cleanliness is respect - food के लिए, guests के लिए! 🙏`;
+            }
+            
+            // Training
+            if (lowerMsg.includes('training') || lowerMsg.includes('प्रशिक्षण') || lowerMsg.includes('सिखाना')) {
+                return `🎓 **Training Available - Role Based**
+
+• **Chef Training:** Cooking techniques, recipes, kitchen management
+• **Waiter Training:** Customer service, menu knowledge, order taking  
+• **Delivery Training:** Safety protocols, customer interaction
+• **Supervisor Training:** Team coordination, quality control
+
+• **Wrong Way:** Bina training के काम करना
+• **Right Way:** Proper training लेकर confident बनना
+
+• **Assignment:** Apna role के लिए 1 training module complete करें
+
+• **Daily Tip:** Learning never stops - हर दिन कुछ नया सीखें! 📚`;
+            }
+            
+            // General Help
+            if (lowerMsg.includes('help') || lowerMsg.includes('मदद')) {
+                return `🤖 **Main aapki kaise help kar sakta hun?**
+
+• **Recipes:** "dal makhani recipe" - Cooking guidance
+• **Safety:** "hygiene rules" - Kitchen safety SOPs  
+• **Training:** "training chahiye" - Role-based learning
+• **Tasks:** "task add karo" - Task management
+
+• **Company Values:**
+  - Happiness और positivity
+  - Mutual respect for all
+  - Zero discrimination
+  - Indian cultural roots
+
+• **Daily Tip:** Questions puchna is good - learning का sign hai! 💡
+
+Backend temporarily down hai, but main basic help kar sakta hun Ji!`;
+            }
+            
+            // Default response
+            return `Namaste ${currentUser.name} Ji! 🙏
+
+Main samjha nahi exactly kya chahiye. Please try:
+
+• **"dal makhani recipe"** - Cooking guidance
+• **"hygiene rules"** - Safety guidelines  
+• **"training chahiye"** - Learning modules
+• **"help"** - Complete menu
+
+• **Daily Tip:** Clear questions puchiye, better help mil sakti hai!
+
+(Backend service restart ho rahi hai, thoda wait kariye) 🔧`;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>

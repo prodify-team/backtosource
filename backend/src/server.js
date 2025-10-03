@@ -36,6 +36,7 @@ app.use('/api/chat', require('./routes/chat'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/training', require('./routes/training'));
 app.use('/api/knowledge', require('./routes/knowledge'));
+app.use('/api/bot-config', require('./routes/botConfig'));
 
 // Socket.io for real-time communication
 io.on('connection', (socket) => {
