@@ -5,8 +5,8 @@ service: default
 handlers:
   # Serve main chatbot at root
   - url: /
-    static_files: simple-chatbot.html
-    upload: simple-chatbot.html
+    static_files: index.html
+    upload: index.html
     secure: always
 
   # Serve admin panel

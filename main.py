@@ -35,7 +35,7 @@ def proxy_api(path):
 @app.route('/')
 def home():
     """Serve main chatbot application"""
-    return redirect('/simple-chatbot.html')
+    return redirect('/index.html')
 
 @app.route('/health')
 def health():
