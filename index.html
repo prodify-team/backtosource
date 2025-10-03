@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back to Source - Training Bot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            min-height: 600px;
+        }
+        .login-container { padding: 40px 30px; text-align: center; }
+        .chat-container { display: flex; flex-direction: column; height: 600px; }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .messages { flex: 1; padding: 20px; overflow-y: auto; background: #f8f9fa; }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .message.user { background: #667eea; color: white; align-self: flex-end; margin-left: auto; }
+        .message.ai { background: #f1f3f4; color: #333; align-self: flex-start; }
+        .input-container { display: flex; gap: 10px; padding: 20px; background: white; border-top: 1px solid #eee; }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+        }
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        .message-input { flex: 1; padding: 12px 16px; border: 2px solid #ddd; border-radius: 25px; font-size: 16px; outline: none; }
+        .send-btn { background: #667eea; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 18px; }
+        .hidden { display: none; }
+        h1 { color: #333; margin-bottom: 10px; font-size: 24px; }
+        h2 { color: #667eea; margin-bottom: 20px; font-size: 20px; }
+        p { color: #666; margin-bottom: 30px; }
+        .status { background: #e8f5e8; color: #2d5a2d; padding: 8px; border-radius: 5px; margin-bottom: 5px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loginContainer" class="login-container">
+            <h1>बैक टू सोर्स में आपका स्वागत है</h1>
+            <p>350+ Team Members | Multiple Locations</p>
+            
+            <div id="phoneForm">
+                <input type="tel" id="phoneNumber" class="form-input" placeholder="अपना फोन नंबर डालें (+91)" maxlength="13">
+                <button class="login-btn" onclick="startLogin()">Login करें</button>
+            </div>
+            
+            <div id="profileForm" class="hidden">
+                <h2>Profile Setup</h2>
+                <input type="text" id="userName" class="form-input" placeholder="अपना नाम लिखें">
+                <select id="userRole" class="form-select">
+                    <option value="">अपनी भूमिका चुनें</option>
+                    <option value="owner">Owner</option>
+                    <option value="manager">Manager</option>
+                    <option value="chef">Chef</option>
+                    <option value="waiter">Waiter</option>
+                    <option value="delivery-boy">Delivery Boy</option>
+                    <option value="supervisor">Supervisor</option>
+                    <option value="trainee">Trainee</option>
+                </select>
+                <select id="location" class="form-select">
+                    <option value="">Restaurant Location चुनें</option>
+                    <option value="delhi-cp">Delhi - Connaught Place</option>
+                    <option value="mumbai-bandra">Mumbai - Bandra</option>
+                    <option value="bangalore-koramangala">Bangalore - Koramangala</option>
+                    <option value="pune-fc-road">Pune - FC Road</option>
+                </select>
+                <button class="login-btn" onclick="completeSetup()">Start Chatting</button>
+            </div>
+        </div>
+
+        <div id="chatContainer" class="chat-container hidden">
+            <div class="chat-header">
+                <h3 id="userInfo">Back to Source Training Bot</h3>
+                <p>आपका AI Training & Task Assistant</p>
+                <div class="status">✅ Working Perfectly - No Server Needed!</div>
+            </div>
+            
+            <div class="messages" id="messages"></div>
+            
+            <div class="input-container">
+                <input type="text" id="messageInput" class="message-input" placeholder="अपना message लिखें..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let tempPhone = '';
+
+        function startLogin() {
+            const phone = document.getElementById('phoneNumber').value.trim();
+            if (!phone || phone.length < 10) {
+                alert('कृपया सही phone number डालें');
+                return;
+            }
+            tempPhone = phone;
+            document.getElementById('phoneForm').classList.add('hidden');
+            document.getElementById('profileForm').classList.remove('hidden');
+        }
+
+        function completeSetup() {
+            const name = document.getElementById('userName').value.trim();
+            const role = document.getElementById('userRole').value;
+            const location = document.getElementById('location').value;
+            
+            if (!name || !role || !location) {
+                alert('कृपया सभी fields भरें');
+                return;
+            }
+            
+            currentUser = { phone: tempPhone, name: name, role: role, location: location };
+            startChat();
+        }
+
+        function startChat() {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('chatContainer').classList.remove('hidden');
+            document.getElementById('userInfo').textContent = `${currentUser.name} (${currentUser.role})`;
+            
+            const welcomeMsg = `Namaste ${currentUser.name} Ji! 🙏
+
+Main aapka Training & Task Bot hun. 100% working offline!
+
+📚 **Try These Commands:**
+• "customer service tips" - Service excellence guide
+• "food safety rules" - Critical safety protocols  
+• "dal makhani recipe" - Master chef recipe
+• "hygiene standards" - Cleanliness guidelines
+• "training modules" - Learning paths
+
+Kya janna chahte hain?`;
+            
+            addMessage(welcomeMsg, 'ai');
+        }
+
+        function addMessage(text, type) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show typing indicator
+            addMessage('Typing...', 'ai');
+            
+            setTimeout(() => {
+                // Remove typing indicator
+                const messages = document.getElementById('messages');
+                if (messages.lastChild && messages.lastChild.textContent === 'Typing...') {
+                    messages.removeChild(messages.lastChild);
+                }
+                
+                const response = getResponse(message, currentUser.role, currentUser.name);
+                addMessage(response, 'ai');
+            }, 800);
+        }
+
+        function getResponse(message, userRole, userName) {
+            const lowerMsg = message.toLowerCase();
+            
+            if (lowerMsg.includes('customer service') || lowerMsg.includes('service tips')) {
+                return `Namaste ${userName}! 🌟
+
+🍽️ **Customer Service Excellence**
+
+• **First Impression:**
+  - Greet within 30 seconds
+  - "Namaste! Welcome to Back to Source"
+  - Maintain eye contact और smile
+
+• **Upselling Techniques:**
+  - "Dal makhani ke saath butter naan perfect hai"
+  - "Fresh lime soda try kariye"
+  - "Gulab jamun with ice cream?"
+
+• **Problem Resolution:**
+  - Listen completely
+  - Apologize: "Main samajh sakta hun"
+  - Offer solutions immediately
+  - Follow up: "Sab theek hai na?"
+
+• **Daily Challenge:** Make 3 customers smile today!
+
+💡 **Pro Tip:** Happy customers tip 25% more! 🎯`;
+            }
+            
+            else if (lowerMsg.includes('food safety') || lowerMsg.includes('safety rules')) {
+                return `Namaste ${userName}! 🛡️
+
+🍽️ **Food Safety - Critical Rules**
+
+• **Temperature Control:**
+  - Danger Zone: 5°C to 60°C
+  - Hot food: Above 65°C
+  - Cold food: Below 4°C
+  - Check every 2 hours
+
+• **Storage Hierarchy:**
+  1. Ready-to-eat (top)
+  2. Seafood
+  3. Meat cuts
+  4. Ground meat
+  5. Raw poultry (bottom)
+
+• **Cross-Contamination Prevention:**
+  - Color-coded boards
+  - Separate utensils
+  - Wash hands between tasks
+  - Sanitize surfaces
+
+• **FIFO Method:**
+  - First In, First Out
+  - Label with dates
+  - Check expiry daily
+  - Dispose expired items
+
+💡 **Critical:** One mistake can shut us down! 🚨`;
+            }
+            
+            else if (lowerMsg.includes('dal makhani') || lowerMsg.includes('recipe')) {
+                if (userRole === 'chef') {
+                    return `Namaste Chef ${userName}! 👨‍🍳
+
+🍛 **Dal Makhani - Master Recipe**
+
+• **Ingredients:**
+  - काली दाल: 1 cup
+  - राजमा: 1/4 cup
+  - Fresh cream: 1/2 cup
+  - Butter: 4-6 tbsp
+
+• **Method:**
+  - Soak overnight (8+ hours)
+  - Pressure cook: 4-5 whistles
+  - Slow cook: 4-6 hours low flame
+  - Stir every 30 minutes
+  - Add cream last 15 minutes
+
+• **Quality Check:**
+  - Consistency: Creamy
+  - Color: Rich dark brown
+  - Taste: Spicy-creamy balance
+  - Aroma: Smoky
+
+🔥 **Secret:** Patience is key - no shortcuts!`;
+                } else {
+                    return `Namaste ${userName}! 📚
+
+🍛 **Dal Makhani Knowledge**
+
+• **What is it:**
+  - Signature slow-cooked black lentils
+  - 6+ hours cooking process
+  - Rich creamy texture
+  - Smoky flavor
+
+• **Serving:**
+  - Hot with butter on top
+  - Best with: Naan, rice
+  - Portion: 150ml
+  - Garnish: Cream swirl
+
+• **Guest Info:**
+  - Mild to medium spice
+  - Contains dairy
+  - 6+ hours cooking time
+  - Vegetarian dish
+
+📖 **Tip:** Know your signature dishes well!`;
+                }
+            }
+            
+            else if (lowerMsg.includes('hygiene') || lowerMsg.includes('cleanliness')) {
+                return `Namaste ${userName}! 🧼
+
+🧼 **Hygiene Standards**
+
+• **Hand Washing:**
+  - 20 seconds with soap
+  - Before work, after breaks
+  - After touching raw food
+  - After restroom
+
+• **Personal Appearance:**
+  - Clean uniform daily
+  - Hair covered completely
+  - Short, clean nails
+  - No jewelry (except wedding ring)
+
+• **Work Area:**
+  - Sanitize surfaces hourly
+  - Clean spills immediately
+  - Organize tools properly
+  - Empty trash regularly
+
+• **Food Handling:**
+  - Use gloves for ready-to-eat
+  - Change gloves between tasks
+  - Cover all food items
+  - Label everything
+
+💡 **Remember:** Cleanliness = Reputation! 🏥`;
+            }
+            
+            else if (lowerMsg.includes('training') || lowerMsg.includes('modules')) {
+                return `Namaste ${userName}! 🎓
+
+📚 **Training Program**
+
+• **Week 1-2: Foundation**
+  - Company culture
+  - Safety protocols
+  - Uniform standards
+  - Communication basics
+
+• **Week 3-4: Skills**
+  - Job responsibilities
+  - Equipment handling
+  - Standard procedures
+  - Quality standards
+
+• **Week 5-6: Advanced**
+  - Problem solving
+  - Customer interaction
+  - Team coordination
+  - Performance optimization
+
+• **Ongoing:**
+  - Monthly assessments
+  - New menu training
+  - Safety updates
+  - Leadership development
+
+🚀 **Growth:** Learning leads to promotions!`;
+            }
+            
+            else {
+                return `Namaste ${userName}! 🙏
+
+Available commands:
+
+📚 **Training:**
+• "customer service tips"
+• "food safety rules"  
+• "hygiene standards"
+• "training modules"
+
+🍽️ **Restaurant:**
+• "dal makhani recipe"
+
+💡 **Tip:** Be specific in your questions!
+
+Kya help chahiye? 🤔`;
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
