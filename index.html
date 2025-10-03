@@ -73,6 +73,7 @@
         h2 { color: #667eea; margin-bottom: 20px; font-size: 20px; }
         p { color: #666; margin-bottom: 30px; }
         .status { background: #e8f5e8; color: #2d5a2d; padding: 8px; border-radius: 5px; margin-bottom: 5px; font-size: 12px; }
+        .status.api-mode { background: #e8f4fd; color: #1e3a8a; }
     </style>
 </head>
 <body>
@@ -197,16 +198,55 @@ Kya janna chahte hain?`;
             // Show typing indicator
             addMessage('Typing...', 'ai');
             
-            setTimeout(() => {
+            try {
+                // Try to call the backend API first
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        userRole: currentUser.role,
+                        userName: currentUser.name,
+                        location: currentUser.location
+                    })
+                });
+                
                 // Remove typing indicator
                 const messages = document.getElementById('messages');
                 if (messages.lastChild && messages.lastChild.textContent === 'Typing...') {
                     messages.removeChild(messages.lastChild);
                 }
                 
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage(data.response, 'ai');
+                    
+                    // Update status to show AI is working
+                    document.querySelector('.status').textContent = '🤖 AI-Powered Responses Active!';
+                    document.querySelector('.status').className = 'status api-mode';
+                } else {
+                    throw new Error('API Error');
+                }
+                
+            } catch (error) {
+                console.log('API failed, using local responses:', error);
+                
+                // Remove typing indicator
+                const messages = document.getElementById('messages');
+                if (messages.lastChild && messages.lastChild.textContent === 'Typing...') {
+                    messages.removeChild(messages.lastChild);
+                }
+                
+                // Fallback to local responses
                 const response = getResponse(message, currentUser.role, currentUser.name);
                 addMessage(response, 'ai');
-            }, 800);
+                
+                // Update status to show offline mode
+                document.querySelector('.status').textContent = '💾 Offline Mode - Static Responses';
+                document.querySelector('.status').className = 'status';
+            }
         }
 
         function getResponse(message, userRole, userName) {
