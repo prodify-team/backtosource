@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Vercel API</title>
+</head>
+<body>
+    <h1>Debug Vercel Backend</h1>
+    
+    <div>
+        <h3>Test API Endpoints:</h3>
+        <button onclick="testAPI()">Test /api/test</button>
+        <button onclick="testChat()">Test /api/chat</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = 'Testing /api/test...';
+            
+            try {
+                const response = await fetch('/api/test');
+                const data = await response.json();
+                results.innerHTML = `✅ /api/test works: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                results.innerHTML = `❌ /api/test failed: ${error.message}`;
+            }
+        }
+
+        async function testChat() {
+            const results = document.getElementById('results');
+            results.innerHTML = 'Testing /api/chat...';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: 'test',
+                        userRole: 'chef',
+                        userName: 'Test'
+                    })
+                });
+                const data = await response.json();
+                results.innerHTML = `✅ /api/chat works: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                results.innerHTML = `❌ /api/chat failed: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
