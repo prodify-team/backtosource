@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
   try {
     const { message, userRole, userName } = req.body;
     
-    console.log(`🔍 Processing: "${message}" for role: ${userRole}`);
+    console.log(`🔍 Processing: "${message}" for role: ${userRole}" - v2.1`);
     
     const finalUserName = userName || 'Ji';
     const finalUserRole = userRole || 'trainee';
