@@ -200,7 +200,7 @@ Kya janna chahte hain?`;
             
             try {
                 // Try to call the backend API first
-                const response = await fetch('/api/chat', {
+                const response = await fetch('/api/chat/message', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

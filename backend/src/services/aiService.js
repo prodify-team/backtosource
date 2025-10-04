@@ -1,4 +1,4 @@
-const knowledgeLoader = require('../knowledge/knowledgeLoader');
+const knowledgeLoader = require('../../knowledge/knowledgeLoader');
 const OpenAI = require('openai');
 
 class AIService {
