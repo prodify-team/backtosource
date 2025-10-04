@@ -33,11 +33,19 @@ class AIService {
       }
       
       // Fallback to file-based knowledge system
-      const relevantContent = knowledgeLoader.findRelevantContent(message, userRole);
-      const response = knowledgeLoader.generateResponse(message, userRole, userName, relevantContent);
+      const relevantDocs = knowledgeLoader.findRelevantContent(message, userRole);
       
-      console.log(`✅ Knowledge base response generated for ${userRole}`);
-      return response;
+      if (relevantDocs && relevantDocs.length > 0) {
+        // Use the new document-based response generation
+        const response = knowledgeLoader.generateResponseFromDocs(message, userRole, userName, relevantDocs);
+        console.log(`✅ Knowledge base response generated for ${userRole} (${relevantDocs.length} docs)`);
+        return response;
+      } else {
+        // Use default response if no documents found
+        const response = knowledgeLoader.getDefaultResponse(userRole, userName);
+        console.log(`✅ Default response generated for ${userRole}`);
+        return response;
+      }
       
     } catch (error) {
       console.error('🚨 AI Service Error:', error.message);

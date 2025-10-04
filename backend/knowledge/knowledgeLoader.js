@@ -125,6 +125,126 @@ class KnowledgeLoader {
     return formatted;
   }
 
+  // Generate response from multiple documents (new method)
+  generateResponseFromDocs(query, userRole, userName, relevantDocs) {
+    if (!relevantDocs || relevantDocs.length === 0) {
+      return this.getDefaultResponse(userRole, userName);
+    }
+
+    let response = `Namaste ${userName}! 🙏\n\n`;
+    
+    // Process each document
+    relevantDocs.forEach((doc, index) => {
+      if (doc.type === 'recipe') {
+        response += this.formatRecipeFromDoc(doc, userRole);
+      } else if (doc.type === 'sop') {
+        response += this.formatSOPFromDoc(doc, userRole);
+      } else if (doc.type === 'training') {
+        response += this.formatTrainingFromDoc(doc, userRole);
+      } else {
+        response += this.formatGeneralFromDoc(doc, userRole);
+      }
+      
+      if (index < relevantDocs.length - 1) {
+        response += '\n\n---\n\n';
+      }
+    });
+
+    return response;
+  }
+
+  formatRecipeFromDoc(doc, userRole) {
+    let response = `👨‍🍳 **${doc.title}**\n\n`;
+    response += `📖 *Source: ${doc.source}*\n\n`;
+    
+    // Extract key information from the formatted content
+    const content = doc.content;
+    if (content.includes('Ingredients:')) {
+      const ingredients = content.match(/Ingredients: ([^\n]+)/)?.[1];
+      if (ingredients) response += `• **Ingredients:** ${ingredients}\n\n`;
+    }
+    
+    if (content.includes('Method:')) {
+      const method = content.match(/Method: ([^\n]+)/)?.[1];
+      if (method) response += `• **Method:** ${method}\n\n`;
+    }
+    
+    if (content.includes('Wrong Way:')) {
+      const wrongWay = content.match(/Wrong Way: ([^\n]+)/)?.[1];
+      if (wrongWay) response += `• **Wrong Way:** ${wrongWay}\n`;
+    }
+    
+    if (content.includes('Right Way:')) {
+      const rightWay = content.match(/Right Way: ([^\n]+)/)?.[1];
+      if (rightWay) response += `• **Right Way:** ${rightWay}\n\n`;
+    }
+    
+    if (content.includes('Assignment:')) {
+      const assignment = content.match(/Assignment: ([^\n]+)/)?.[1];
+      if (assignment) response += `• **Assignment:** ${assignment}\n\n`;
+    }
+    
+    if (content.includes('Daily Tip:')) {
+      const dailyTip = content.match(/Daily Tip: ([^\n]+)/)?.[1];
+      if (dailyTip) response += `• **Daily Tip:** ${dailyTip}`;
+    }
+    
+    return response;
+  }
+
+  formatSOPFromDoc(doc, userRole) {
+    let response = `🧼 **${doc.title}**\n\n`;
+    response += `📖 *Source: ${doc.source}*\n\n`;
+    
+    const content = doc.content;
+    if (content.includes('Standards:')) {
+      const standards = content.match(/Standards: ([^\n]+)/)?.[1];
+      if (standards) response += `• **Standards:** ${standards}\n\n`;
+    }
+    
+    if (content.includes('Responsibilities:')) {
+      const responsibilities = content.match(/Responsibilities: ([^\n]+)/)?.[1];
+      if (responsibilities) response += `• **Responsibilities:** ${responsibilities}\n\n`;
+    }
+    
+    if (content.includes('Wrong Way:')) {
+      const wrongWay = content.match(/Wrong Way: ([^\n]+)/)?.[1];
+      if (wrongWay) response += `• **Wrong Way:** ${wrongWay}\n`;
+    }
+    
+    if (content.includes('Right Way:')) {
+      const rightWay = content.match(/Right Way: ([^\n]+)/)?.[1];
+      if (rightWay) response += `• **Right Way:** ${rightWay}\n\n`;
+    }
+    
+    return response;
+  }
+
+  formatTrainingFromDoc(doc, userRole) {
+    let response = `🎓 **${doc.title}**\n\n`;
+    response += `📖 *Source: ${doc.source}*\n\n`;
+    
+    const content = doc.content;
+    if (content.includes('Modules:')) {
+      const modules = content.match(/Modules: ([^\n]+)/)?.[1];
+      if (modules) response += `• **Training Modules:** ${modules}\n\n`;
+    }
+    
+    if (content.includes('Skills:')) {
+      const skills = content.match(/Skills: ([^\n]+)/)?.[1];
+      if (skills) response += `• **Key Skills:** ${skills}\n\n`;
+    }
+    
+    return response;
+  }
+
+  formatGeneralFromDoc(doc, userRole) {
+    let response = `📋 **${doc.title}**\n\n`;
+    response += `📖 *Source: ${doc.source}*\n\n`;
+    response += doc.content;
+    return response;
+  }
+
   getGeneralRoleContent(userRole) {
     const roleContent = {
       chef: `CHEF RESPONSIBILITIES:

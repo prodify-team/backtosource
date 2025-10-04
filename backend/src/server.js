@@ -25,9 +25,53 @@ app.get('/api/test', (req, res) => {
     timestamp: new Date(),
     endpoints: {
       chat: 'POST /api/chat/message',
-      auth: 'POST /api/auth/login'
+      auth: 'POST /api/auth/login',
+      debug: 'POST /api/debug/search'
     }
   });
+});
+
+// Debug endpoint for knowledge base search
+app.post('/api/debug/search', (req, res) => {
+  try {
+    const { query, userRole = 'trainee' } = req.body;
+    
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+
+    console.log(`🔍 Debug search: "${query}" for role: ${userRole}`);
+    
+    // Import knowledge loader
+    const knowledgeLoader = require('../knowledge/knowledgeLoader');
+    
+    // Search knowledge base
+    const results = knowledgeLoader.findRelevantContent(query, userRole);
+    
+    res.json({
+      query,
+      userRole,
+      resultsCount: results ? results.length : 0,
+      results: results ? results.map(r => ({
+        title: r.title || 'Unknown',
+        source: r.source || 'Unknown Source',
+        type: r.type || 'unknown',
+        relevance: 'high', // We can add scoring later
+        snippet: r.content ? r.content.substring(0, 200) + '...' : 'No content',
+        fullContent: r.content
+      })) : [],
+      timestamp: new Date().toISOString(),
+      knowledgeBaseStatus: 'loaded'
+    });
+    
+  } catch (error) {
+    console.error('🚨 Debug search error:', error);
+    res.status(500).json({ 
+      error: 'Debug search failed',
+      message: error.message,
+      query: req.body.query
+    });
+  }
 });
 
 // Routes
