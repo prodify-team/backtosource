@@ -48,19 +48,63 @@ class AIService {
   }
 
   async getOpenAIResponse(message, userRole, userName) {
-    const systemPrompt = this.getSystemPrompt(userRole, userName);
+    // Retrieve relevant documents from knowledge base
+    const relevantContent = knowledgeLoader.findRelevantContent(message, userRole);
+    
+    // Build knowledge-grounded prompt
+    const knowledgePrompt = this.buildKnowledgeGroundedPrompt(message, userRole, userName, relevantContent);
     
     const response = await this.openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: knowledgePrompt },
         { role: "user", content: message }
       ],
-      max_tokens: 500,
-      temperature: 0.7,
+      max_tokens: 600,
+      temperature: 0.3, // Lower temperature for more factual responses
     });
 
     return response.choices[0].message.content;
+  }
+
+  buildKnowledgeGroundedPrompt(message, userRole, userName, relevantContent) {
+    const baseInstructions = `You are an AI training assistant for "Back to Source" restaurant chain with 350+ team members across India.
+
+CRITICAL INSTRUCTIONS:
+- Answer ONLY using the knowledge base provided below
+- If information is not in the knowledge base, say "I don't have that specific information in my training materials"
+- Always cite the source document when providing information
+- Respond in Hinglish (Hindi + English mix) as the team communicates
+- Address the user as "${userName} Ji" respectfully
+- Include emojis and use "Wrong Way vs Right Way" format when appropriate
+
+KNOWLEDGE BASE (use ONLY this information to answer):
+${this.formatKnowledgeContent(relevantContent)}
+
+USER CONTEXT:
+- Role: ${userRole}
+- Name: ${userName}
+- Restaurant: Back to Source
+
+RESPONSE FORMAT:
+- Be practical and actionable
+- Include source references like "(Source: Recipe Guide)" 
+- End with a relevant daily tip when appropriate
+- Keep responses concise but informative`;
+
+    return baseInstructions;
+  }
+
+  formatKnowledgeContent(relevantContent) {
+    if (!relevantContent || relevantContent.length === 0) {
+      return "No specific knowledge base content found for this query. Use general restaurant industry knowledge.";
+    }
+
+    return relevantContent.map((doc, index) => {
+      return `--- DOCUMENT ${index + 1}: ${doc.source || 'Knowledge Base'} ---
+${doc.content}
+--- END DOCUMENT ${index + 1} ---`;
+    }).join('\n\n');
   }
 
   getSystemPrompt(userRole, userName) {

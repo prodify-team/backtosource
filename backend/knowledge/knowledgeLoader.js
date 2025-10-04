@@ -32,51 +32,138 @@ class KnowledgeLoader {
     }
   }
 
-  // Find relevant knowledge based on query and role
+  // Find relevant knowledge based on query and role - returns array of documents
   findRelevantContent(query, userRole) {
     const lowerQuery = query.toLowerCase();
-    let relevantContent = null;
+    const relevantDocs = [];
 
     // Check recipes
     if (lowerQuery.includes('dal makhani') || lowerQuery.includes('दाल मखनी') || lowerQuery.includes('recipe')) {
       const dalMakhani = this.knowledge.recipes['dal-makhani'];
       if (dalMakhani && dalMakhani.content[userRole]) {
-        relevantContent = {
+        relevantDocs.push({
+          source: `Recipe Guide - ${dalMakhani.title}`,
+          content: this.formatDocumentContent(dalMakhani.content[userRole], 'recipe', userRole),
           type: 'recipe',
-          title: dalMakhani.title,
-          content: dalMakhani.content[userRole],
-          category: dalMakhani.category
-        };
+          title: dalMakhani.title
+        });
       }
     }
     
     // Check hygiene/SOPs
-    else if (lowerQuery.includes('hygiene') || lowerQuery.includes('सफाई') || lowerQuery.includes('cleanliness') || lowerQuery.includes('sop')) {
+    if (lowerQuery.includes('hygiene') || lowerQuery.includes('सफाई') || lowerQuery.includes('cleanliness') || lowerQuery.includes('sop')) {
       const hygiene = this.knowledge.sops['kitchen-hygiene'];
       if (hygiene && hygiene.content[userRole]) {
-        relevantContent = {
+        relevantDocs.push({
+          source: `SOP Manual - ${hygiene.title}`,
+          content: this.formatDocumentContent(hygiene.content[userRole], 'sop', userRole),
           type: 'sop',
-          title: hygiene.title,
-          content: hygiene.content[userRole],
-          category: hygiene.category
-        };
+          title: hygiene.title
+        });
       }
     }
     
     // Check training
-    else if (lowerQuery.includes('training') || lowerQuery.includes('प्रशिक्षण') || lowerQuery.includes('सिखाना') || lowerQuery.includes('learn')) {
+    if (lowerQuery.includes('training') || lowerQuery.includes('प्रशिक्षण') || lowerQuery.includes('सिखाना') || lowerQuery.includes('learn')) {
       const training = this.knowledge.training['role-based-training'];
       if (training && training.content[userRole]) {
-        relevantContent = {
+        relevantDocs.push({
+          source: `Training Manual - ${training.title}`,
+          content: this.formatDocumentContent(training.content[userRole], 'training', userRole),
           type: 'training',
-          title: training.title,
-          content: training.content[userRole],
-          category: training.category
-        };
+          title: training.title
+        });
       }
     }
 
-    return relevantContent;
+    // If no specific match, include general role-based content
+    if (relevantDocs.length === 0) {
+      relevantDocs.push({
+        source: `General Guidelines - ${userRole.charAt(0).toUpperCase() + userRole.slice(1)} Role`,
+        content: this.getGeneralRoleContent(userRole),
+        type: 'general',
+        title: 'Role Guidelines'
+      });
+    }
+
+    return relevantDocs;
+  }
+
+  formatDocumentContent(content, type, userRole) {
+    let formatted = '';
+    
+    if (type === 'recipe') {
+      formatted += `RECIPE INFORMATION:\n`;
+      if (content.ingredients) formatted += `Ingredients: ${content.ingredients.slice(0, 5).join(', ')}\n`;
+      if (content.method) formatted += `Method: ${content.method.slice(0, 3).join(' → ')}\n`;
+      if (content.cookingTime) formatted += `Cooking Time: ${content.cookingTime}\n`;
+      if (content.description) formatted += `Description: ${content.description}\n`;
+      if (content.wrongWay) formatted += `Wrong Way: ${content.wrongWay}\n`;
+      if (content.rightWay) formatted += `Right Way: ${content.rightWay}\n`;
+      if (content.assignment) formatted += `Assignment: ${content.assignment}\n`;
+      if (content.dailyTip) formatted += `Daily Tip: ${content.dailyTip}`;
+    }
+    else if (type === 'sop') {
+      formatted += `STANDARD OPERATING PROCEDURE:\n`;
+      if (content.standards) formatted += `Standards: ${content.standards.slice(0, 3).join('; ')}\n`;
+      if (content.responsibilities) formatted += `Responsibilities: ${content.responsibilities.slice(0, 3).join('; ')}\n`;
+      if (content.wrongWay) formatted += `Wrong Way: ${content.wrongWay}\n`;
+      if (content.rightWay) formatted += `Right Way: ${content.rightWay}\n`;
+      if (content.assignment) formatted += `Assignment: ${content.assignment}\n`;
+      if (content.dailyTip) formatted += `Daily Tip: ${content.dailyTip}`;
+    }
+    else if (type === 'training') {
+      formatted += `TRAINING INFORMATION:\n`;
+      if (content.modules) formatted += `Modules: ${content.modules.slice(0, 3).join('; ')}\n`;
+      if (content.skills) formatted += `Skills: ${content.skills.slice(0, 3).join('; ')}\n`;
+      if (content.wrongWay) formatted += `Wrong Way: ${content.wrongWay}\n`;
+      if (content.rightWay) formatted += `Right Way: ${content.rightWay}\n`;
+      if (content.assignment) formatted += `Assignment: ${content.assignment}\n`;
+      if (content.dailyTip) formatted += `Daily Tip: ${content.dailyTip}`;
+    }
+
+    return formatted;
+  }
+
+  getGeneralRoleContent(userRole) {
+    const roleContent = {
+      chef: `CHEF RESPONSIBILITIES:
+- Kitchen management and food preparation
+- Team training and quality control
+- Recipe standardization and innovation
+- Food safety and hygiene compliance
+- Inventory management and cost control`,
+
+      waiter: `WAITER RESPONSIBILITIES:
+- Customer service excellence and satisfaction
+- Order taking and menu knowledge
+- Upselling and revenue optimization
+- Table management and service standards
+- Guest complaint resolution`,
+
+      trainee: `TRAINEE LEARNING PATH:
+- Basic restaurant operations understanding
+- Company culture and values adoption
+- Role-specific skill development
+- Mentorship and guidance seeking
+- Continuous learning and improvement`,
+
+      supervisor: `SUPERVISOR RESPONSIBILITIES:
+- Team coordination and management
+- Quality assurance and standards maintenance
+- Performance monitoring and feedback
+- Training facilitation and development
+- Problem resolution and escalation`,
+
+      manager: `MANAGER RESPONSIBILITIES:
+- Overall operations management
+- Staff scheduling and resource allocation
+- Financial performance and cost control
+- Customer satisfaction and retention
+- Strategic planning and execution`
+    };
+
+    return roleContent[userRole] || roleContent.trainee;
   }
 
   // Generate response based on found content
